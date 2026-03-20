@@ -20,6 +20,8 @@ class CurrencyFormatter {
     }
     _localeCode = localeCode;
     _currencyCode = currencyCode;
+    _cache.clear();
+    _compactCache.clear();
   }
 
   static String format(num value) {
@@ -30,13 +32,38 @@ class CurrencyFormatter {
     return formatter.format(converted);
   }
 
+  /// Formats [value] that is already in the display currency — no base
+  /// conversion applied.  Use this with [Expense.displayAmount] to avoid
+  /// floating-point precision loss.
+  static String formatValue(num value) {
+    final String cacheKey = '$_localeCode|$_currencyCode';
+    final NumberFormat formatter = _cache.putIfAbsent(
+        cacheKey, () => _resolveFormatter(_localeCode, _currencyCode));
+    return formatter.format(value);
+  }
+
+  /// Compact-formats [value] that is already in the display currency — no base
+  /// conversion applied.  Use this with [Expense.displayAmount].
+  static String formatCompactValue(num value) {
+    final String cacheKey = 'compact|$_localeCode|$_currencyCode';
+    final NumberFormat formatter = _compactCache.putIfAbsent(
+      cacheKey,
+      () => NumberFormat.compactCurrency(
+        locale: _currencyCode == 'VND' ? 'vi_VN' : _localeCode,
+        symbol: _resolveSymbol(_currencyCode),
+        decimalDigits: _resolveDecimalDigits(_currencyCode),
+      ),
+    );
+    return formatter.format(value);
+  }
+
   static String formatCompact(num value) {
     final String cacheKey = 'compact|$_localeCode|$_currencyCode';
     final double converted = convertFromBase(value);
     final NumberFormat formatter = _compactCache.putIfAbsent(
       cacheKey,
       () => NumberFormat.compactCurrency(
-        locale: _localeCode,
+        locale: _currencyCode == 'VND' ? 'vi_VN' : _localeCode,
         symbol: _resolveSymbol(_currencyCode),
         decimalDigits: _resolveDecimalDigits(_currencyCode),
       ),
@@ -70,10 +97,12 @@ class CurrencyFormatter {
       String localeCode, String currencyCode) {
     switch (currencyCode) {
       case 'VND':
+        // Always use Vietnamese locale for VND so the thousands separator is a
+        // dot (500.000 ₫) regardless of the UI language setting.
         return NumberFormat.currency(
-          locale: localeCode,
-          symbol: _resolveSymbol(currencyCode),
-          decimalDigits: _resolveDecimalDigits(currencyCode),
+          locale: 'vi_VN',
+          symbol: '₫',
+          decimalDigits: 0,
         );
       case 'USD':
       default:

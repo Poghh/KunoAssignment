@@ -54,6 +54,72 @@ abstract class ExpenseLocalDataSource {
     required String fromId,
     required String toId,
   });
+
+  /// Migrates all guest-scoped data (pending ops, expenses, categories)
+  /// into [authenticatedUsername]'s namespace and clears the guest namespace.
+  Future<void> migrateGuestDataToUser(String authenticatedUsername);
+
+  /// Clears the current user's cached expenses and categories, keeping the
+  /// pending operations queue intact so they can still be synced to the server.
+  Future<void> clearLocalCache();
+
+  /// Seeds hard-coded default categories (with fixed offline IDs) into the
+  /// local cache WITHOUT adding pending sync operations.  Only adds categories
+  /// that are missing.  Does nothing when server-origin categories are already
+  /// cached (i.e. any category whose ID does not start with the offline-default
+  /// prefix), to avoid duplicating server data.
+  Future<void> seedOfflineDefaultCategories();
+
+  /// The prefix used for all hard-coded offline-default category IDs.
+  static const String offlineDefaultPrefix = 'offline-default-';
+
+  /// The canonical list of default categories that are always available
+  /// offline.  Matches the seeds on the backend so ID remapping works by name.
+  static const List<Map<String, String>> offlineDefaultSeeds =
+      <Map<String, String>>[
+    <String, String>{
+      'id': 'offline-default-food',
+      'name': 'Food',
+      'icon': 'restaurant',
+      'color': '#EF5350',
+    },
+    <String, String>{
+      'id': 'offline-default-transport',
+      'name': 'Transport',
+      'icon': 'directions_car',
+      'color': '#42A5F5',
+    },
+    <String, String>{
+      'id': 'offline-default-shopping',
+      'name': 'Shopping',
+      'icon': 'shopping_bag',
+      'color': '#AB47BC',
+    },
+    <String, String>{
+      'id': 'offline-default-bills',
+      'name': 'Bills',
+      'icon': 'lightbulb',
+      'color': '#FFA726',
+    },
+    <String, String>{
+      'id': 'offline-default-entertainment',
+      'name': 'Entertainment',
+      'icon': 'movie',
+      'color': '#26A69A',
+    },
+    <String, String>{
+      'id': 'offline-default-health',
+      'name': 'Health',
+      'icon': 'health_and_safety',
+      'color': '#66BB6A',
+    },
+    <String, String>{
+      'id': 'offline-default-salary',
+      'name': 'Salary',
+      'icon': 'work',
+      'color': '#4CAF50',
+    },
+  ];
 }
 
 class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
@@ -320,34 +386,41 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
     cachedCategories
         .removeWhere((CategoryModel category) => category.id == categoryId);
 
-    final bool hasPendingCreate = queue.any(
-      (PendingSyncOperation operation) =>
-          operation.type == PendingSyncOperationType.createCategory &&
-          operation.entityId == categoryId,
-    );
+    // Offline-default categories only exist locally — never enqueue a server
+    // delete for them.
+    final bool isOfflineDefault =
+        categoryId.startsWith(ExpenseLocalDataSource.offlineDefaultPrefix);
 
-    queue.removeWhere(
-      (PendingSyncOperation operation) =>
-          operation.type == PendingSyncOperationType.createCategory &&
-          operation.entityId == categoryId,
-    );
-
-    if (!hasPendingCreate) {
-      final bool hasPendingDelete = queue.any(
+    if (!isOfflineDefault) {
+      final bool hasPendingCreate = queue.any(
         (PendingSyncOperation operation) =>
-            operation.type == PendingSyncOperationType.deleteCategory &&
+            operation.type == PendingSyncOperationType.createCategory &&
             operation.entityId == categoryId,
       );
-      if (!hasPendingDelete) {
-        queue.add(
-          PendingSyncOperation(
-            id: _generateOperationId(),
-            type: PendingSyncOperationType.deleteCategory,
-            entityId: categoryId,
-            payload: <String, dynamic>{},
-            createdAt: DateTime.now(),
-          ),
+
+      queue.removeWhere(
+        (PendingSyncOperation operation) =>
+            operation.type == PendingSyncOperationType.createCategory &&
+            operation.entityId == categoryId,
+      );
+
+      if (!hasPendingCreate) {
+        final bool hasPendingDelete = queue.any(
+          (PendingSyncOperation operation) =>
+              operation.type == PendingSyncOperationType.deleteCategory &&
+              operation.entityId == categoryId,
         );
+        if (!hasPendingDelete) {
+          queue.add(
+            PendingSyncOperation(
+              id: _generateOperationId(),
+              type: PendingSyncOperationType.deleteCategory,
+              entityId: categoryId,
+              payload: <String, dynamic>{},
+              createdAt: DateTime.now(),
+            ),
+          );
+        }
       }
     }
 
@@ -530,6 +603,125 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
     await _writeCategories(prefs, cachedCategories);
     await _writeExpenses(prefs, cachedExpenses);
     await _writeQueue(prefs, queue);
+  }
+
+  @override
+  Future<void> migrateGuestDataToUser(String authenticatedUsername) async {
+    final String encoded = Uri.encodeComponent(authenticatedUsername.trim());
+    if (encoded.isEmpty) return;
+
+    final SharedPreferences prefs = await _resolvePreferences();
+
+    const String guestSuffix = 'guest';
+    final String guestQueueKey = '$_storageNamespace.queue.$guestSuffix';
+    final String guestExpenseKey = '$_storageNamespace.expenses.$guestSuffix';
+    final String guestCategoryKey =
+        '$_storageNamespace.categories.$guestSuffix';
+
+    final List<Map<String, dynamic>> guestQueueRaw =
+        await _readJsonList(prefs, guestQueueKey);
+    final List<Map<String, dynamic>> guestExpensesRaw =
+        await _readJsonList(prefs, guestExpenseKey);
+    final List<Map<String, dynamic>> guestCategoriesRaw =
+        await _readJsonList(prefs, guestCategoryKey);
+
+    if (guestQueueRaw.isEmpty &&
+        guestExpensesRaw.isEmpty &&
+        guestCategoriesRaw.isEmpty) {
+      return;
+    }
+
+    final String userQueueKey = '$_storageNamespace.queue.$encoded';
+    final String userExpenseKey = '$_storageNamespace.expenses.$encoded';
+    final String userCategoryKey = '$_storageNamespace.categories.$encoded';
+
+    final List<Map<String, dynamic>> userQueueRaw =
+        await _readJsonList(prefs, userQueueKey);
+    final List<Map<String, dynamic>> userExpensesRaw =
+        await _readJsonList(prefs, userExpenseKey);
+    final List<Map<String, dynamic>> userCategoriesRaw =
+        await _readJsonList(prefs, userCategoryKey);
+
+    // Guest ops go first so they are synced before any existing user ops.
+    final List<Map<String, dynamic>> mergedQueue = <Map<String, dynamic>>[
+      ...guestQueueRaw,
+      ...userQueueRaw,
+    ];
+
+    // Guest expenses prepended; deduplicate by id.
+    final Map<String, Map<String, dynamic>> expenseMap =
+        <String, Map<String, dynamic>>{};
+    for (final Map<String, dynamic> item in <Map<String, dynamic>>[
+      ...guestExpensesRaw,
+      ...userExpensesRaw,
+    ]) {
+      final String? id = item['id'] as String?;
+      if (id != null) expenseMap[id] = item;
+    }
+
+    // Guest categories prepended; deduplicate by id.
+    final Map<String, Map<String, dynamic>> categoryMap =
+        <String, Map<String, dynamic>>{};
+    for (final Map<String, dynamic> item in <Map<String, dynamic>>[
+      ...guestCategoriesRaw,
+      ...userCategoriesRaw,
+    ]) {
+      final String? id = item['id'] as String?;
+      if (id != null) categoryMap[id] = item;
+    }
+
+    await _writeJsonList(prefs, userQueueKey, mergedQueue);
+    await _writeJsonList(
+        prefs, userExpenseKey, expenseMap.values.toList());
+    await _writeJsonList(
+        prefs, userCategoryKey, categoryMap.values.toList());
+
+    // Clear guest namespace.
+    await prefs.remove(guestQueueKey);
+    await prefs.remove(guestExpenseKey);
+    await prefs.remove(guestCategoryKey);
+  }
+
+  @override
+  Future<void> clearLocalCache() async {
+    final SharedPreferences prefs = await _resolvePreferences();
+    await prefs.remove(await _expenseKey(prefs));
+    await prefs.remove(await _categoryKey(prefs));
+  }
+
+  @override
+  Future<void> seedOfflineDefaultCategories() async {
+    final SharedPreferences prefs = await _resolvePreferences();
+    final List<CategoryModel> cached = await getCachedCategories();
+
+    // If any server-origin category exists (ID without the offline prefix),
+    // the server data is authoritative — do not seed offline defaults.
+    final bool hasServerCategories = cached.any(
+      (CategoryModel c) =>
+          !c.id.startsWith(ExpenseLocalDataSource.offlineDefaultPrefix),
+    );
+    if (hasServerCategories) return;
+
+    final Set<String> existingIds =
+        cached.map((CategoryModel c) => c.id).toSet();
+
+    bool changed = false;
+    for (final Map<String, String> seed
+        in ExpenseLocalDataSource.offlineDefaultSeeds) {
+      if (!existingIds.contains(seed['id']!)) {
+        cached.add(CategoryModel(
+          id: seed['id']!,
+          name: seed['name']!,
+          icon: seed['icon']!,
+          color: seed['color']!,
+        ));
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      await _writeCategories(prefs, cached);
+    }
   }
 
   Future<SharedPreferences> _resolvePreferences() async {

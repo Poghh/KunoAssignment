@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_ui_constants.dart';
 import '../../../../core/cubit/settings_cubit.dart';
 import '../../../../core/extensions/error_localization_extension.dart';
+import '../../../../core/extensions/category_localization_extension.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/color_parser.dart';
@@ -38,38 +40,37 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _amountController;
-  late final TextEditingController _locationController;
   late final TextEditingController _notesController;
 
   String? _selectedCategoryId;
   late DateTime _selectedDate;
   late _TransactionType _transactionType;
+  late AppCurrency _activeCurrency;
 
   @override
   void initState() {
     super.initState();
     final SettingsState settings = context.read<SettingsCubit>().state;
+    _activeCurrency = settings.currency;
+
     _titleController =
         TextEditingController(text: widget.initialExpense?.title ?? '');
     _transactionType = (widget.initialExpense?.amount ?? 0) < 0
         ? _TransactionType.income
         : _TransactionType.expense;
 
-    final double initialAmountInSelectedCurrency = widget.initialExpense == null
-        ? 0
-        : CurrencyFormatter.convertFromBase(
-            widget.initialExpense!.amount.abs(),
-            targetCurrencyCode: settings.currency.code,
-          );
+    // For edit: show amount in current display currency.
+    // If the expense was saved in a different currency, convert via USD base.
+    final double initialAmount = _resolveInitialAmount(
+      expense: widget.initialExpense,
+      currency: settings.currency,
+    );
 
     _amountController = TextEditingController(
       text: widget.initialExpense == null
           ? ''
-          : _formatInputAmount(
-              initialAmountInSelectedCurrency, settings.currency),
+          : _formatInputAmount(initialAmount, settings.currency),
     );
-    _locationController =
-        TextEditingController(text: widget.initialExpense?.location ?? '');
     _notesController =
         TextEditingController(text: widget.initialExpense?.notes ?? '');
     _selectedCategoryId = widget.initialExpense?.categoryId;
@@ -77,12 +78,62 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
 
     _titleController.addListener(_onFormChanged);
     _amountController.addListener(_onFormChanged);
+
+    // Listen for currency setting changes while the form is open.
+    context.read<SettingsCubit>().stream.listen(_onSettingsChanged);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       _validateFormInputs();
     });
+  }
+
+  void _onSettingsChanged(SettingsState settings) {
+    if (!mounted) return;
+    final AppCurrency newCurrency = settings.currency;
+    if (newCurrency == _activeCurrency) return;
+
+    final AppCurrency oldCurrency = _activeCurrency;
+    _activeCurrency = newCurrency;
+
+    // Convert the current amount field value to the new currency.
+    final String rawText = oldCurrency == AppCurrency.vnd
+        ? _amountController.text.replaceAll('.', '')
+        : _amountController.text.trim();
+    final double? inputAmount = double.tryParse(rawText);
+
+    if (inputAmount != null && inputAmount > 0) {
+      final double baseAmount = CurrencyFormatter.convertToBase(
+        inputAmount,
+        sourceCurrencyCode: oldCurrency.code,
+      );
+      final double converted = CurrencyFormatter.convertFromBase(
+        baseAmount,
+        targetCurrencyCode: newCurrency.code,
+      );
+      _amountController.removeListener(_onFormChanged);
+      _amountController.text = _formatInputAmount(converted, newCurrency);
+      _amountController.addListener(_onFormChanged);
+    }
+
+    setState(() {});
+    _validateFormInputs();
+  }
+
+  double _resolveInitialAmount({
+    required Expense? expense,
+    required AppCurrency currency,
+  }) {
+    if (expense == null) return 0;
+    // Same currency: use displayAmount to avoid base-conversion precision loss.
+    if (expense.currencyCode.toUpperCase() == currency.code.toUpperCase()) {
+      return expense.displayAmount.abs();
+    }
+    // Different currency: convert from USD base to the current display currency.
+    return CurrencyFormatter.convertFromBase(
+      expense.amount.abs(),
+      targetCurrencyCode: currency.code,
+    );
   }
 
   @override
@@ -93,7 +144,6 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
     _amountController
       ..removeListener(_onFormChanged)
       ..dispose();
-    _locationController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -104,9 +154,12 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
   }
 
   void _validateFormInputs() {
+    final String rawAmount = _activeCurrency == AppCurrency.vnd
+        ? _amountController.text.trim().replaceAll('.', '')
+        : _amountController.text.trim();
     context.read<ExpenseFormCubit>().validateForm(
           title: _titleController.text,
-          amountText: _amountController.text,
+          amountText: rawAmount,
           categoryId: _selectedCategoryId,
         );
   }
@@ -135,17 +188,17 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
       return;
     }
 
-    final SettingsState settings = context.read<SettingsCubit>().state;
-    final double amount = double.parse(_amountController.text.trim()).abs();
+    final String rawAmount = _activeCurrency == AppCurrency.vnd
+        ? _amountController.text.trim().replaceAll('.', '')
+        : _amountController.text.trim();
+    final double amount = double.parse(rawAmount).abs();
     final ExpenseDraft draft = ExpenseDraft(
       title: _titleController.text.trim(),
       amount: _transactionType == _TransactionType.income ? -amount : amount,
-      currencyCode: settings.currency.code,
+      currencyCode: _activeCurrency.code,
       date: _selectedDate,
       categoryId: _selectedCategoryId!,
-      location: _locationController.text.trim().isEmpty
-          ? null
-          : _locationController.text.trim(),
+      location: null,
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
@@ -218,76 +271,11 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
     );
   }
 
-  Future<void> _promptDeleteCategory() async {
-    final String? selectedCategoryId = _selectedCategoryId;
-    if (selectedCategoryId == null || selectedCategoryId.isEmpty) {
-      return;
-    }
-
-    final ExpenseFormCubit cubit = context.read<ExpenseFormCubit>();
-    final Category? selectedCategory =
-        cubit.state.categories.cast<Category?>().firstWhere(
-              (Category? category) => category?.id == selectedCategoryId,
-              orElse: () => null,
-            );
-    if (selectedCategory == null) {
-      return;
-    }
-
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(context.l10n.deleteCategoryTitle),
-          content: Text(
-            context.l10n.deleteCategoryConfirmMessage(selectedCategory.name),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(context.l10n.commonCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(context.l10n.commonDelete),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed != true || !mounted) {
-      return;
-    }
-
-    final bool deleted = await cubit.deleteCategory(selectedCategoryId);
-    if (!mounted) {
-      return;
-    }
-
-    if (!deleted) {
-      AppToast.error(
-        context.localizeErrorMessage(
-          cubit.state.errorMessage,
-          fallback: context.l10n.deleteCategoryFailed,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _selectedCategoryId = null;
-    });
-    _validateFormInputs();
-    AppToast.success(context.l10n.deleteCategorySuccess);
-  }
-
   @override
   Widget build(BuildContext context) {
     final ExpenseFormState state = context.watch<ExpenseFormCubit>().state;
     final String locale = Localizations.localeOf(context).toString();
-    final SettingsState settings = context.watch<SettingsCubit>().state;
-    final String currencyPrefix = settings.currency.symbol;
+    final String currencyPrefix = _activeCurrency.symbol;
 
     return Scaffold(
       appBar: AppBar(
@@ -383,17 +371,24 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
                         ),
                         child: TextFormField(
                           controller: _amountController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true, signed: false),
+                          keyboardType: TextInputType.numberWithOptions(
+                              decimal: _activeCurrency != AppCurrency.vnd,
+                              signed: false),
                           textInputAction: TextInputAction.next,
+                          inputFormatters: _activeCurrency == AppCurrency.vnd
+                              ? <TextInputFormatter>[_vndInputFormatter()]
+                              : null,
                           decoration: InputDecoration(
                             labelText: context.l10n.amountLabel,
                             prefixText: currencyPrefix,
                             prefixIcon: const Icon(Icons.attach_money_rounded),
                           ),
                           validator: (String? value) {
-                            final double? amount =
-                                double.tryParse(value?.trim() ?? '');
+                            final String raw =
+                                _activeCurrency == AppCurrency.vnd
+                                    ? (value?.trim() ?? '').replaceAll('.', '')
+                                    : (value?.trim() ?? '');
+                            final double? amount = double.tryParse(raw);
                             if (amount == null || amount <= 0) {
                               return context.l10n.amountValidationError;
                             }
@@ -427,7 +422,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
                                     ),
                                     const SizedBox(width: AppSpacing.sm),
                                     Text(
-                                      category.name,
+                                      context.l10n.localizeCategory(category.name),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
@@ -450,21 +445,10 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
                       ),
                       Align(
                         alignment: Alignment.centerRight,
-                        child: Wrap(
-                          spacing: AppSpacing.sm,
-                          children: <Widget>[
-                            TextButton.icon(
-                              onPressed: _promptCreateCategory,
-                              icon: const Icon(Icons.add_rounded),
-                              label: Text(context.l10n.addCategoryButton),
-                            ),
-                            if (_selectedCategoryId != null)
-                              TextButton.icon(
-                                onPressed: _promptDeleteCategory,
-                                icon: const Icon(Icons.delete_outline_rounded),
-                                label: Text(context.l10n.deleteCategoryButton),
-                              ),
-                          ],
+                        child: TextButton.icon(
+                          onPressed: _promptCreateCategory,
+                          icon: const Icon(Icons.add_rounded),
+                          label: Text(context.l10n.addCategoryButton),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.md),
@@ -480,15 +464,6 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
                             DateFormat('EEE, dd MMM yyyy', locale)
                                 .format(_selectedDate),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TextFormField(
-                        controller: _locationController,
-                        textInputAction: TextInputAction.next,
-                        decoration: InputDecoration(
-                          labelText: context.l10n.locationLabel,
-                          prefixIcon: const Icon(Icons.location_on_outlined),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.md),
@@ -517,7 +492,31 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
   }
 
   String _formatInputAmount(double amount, AppCurrency currency) {
-    final int decimalDigits = currency.decimalDigits;
-    return amount.toStringAsFixed(decimalDigits);
+    if (currency == AppCurrency.vnd) {
+      // Show VND with thousand separators (e.g. 500.000) using vi_VN locale.
+      return NumberFormat('#,##0', 'vi_VN').format(amount.round());
+    }
+    return amount.toStringAsFixed(currency.decimalDigits);
   }
+}
+
+/// Returns a [TextInputFormatter] that formats VND amounts as the user types:
+/// strips non-digits and re-formats with dot thousand-separators
+/// (e.g. "500000" → "500.000").
+TextInputFormatter _vndInputFormatter() {
+  final NumberFormat fmt = NumberFormat('#,##0', 'vi_VN');
+  return TextInputFormatter.withFunction((
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final String digits = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+    if (digits.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+    final String formatted = fmt.format(int.parse(digits));
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  });
 }

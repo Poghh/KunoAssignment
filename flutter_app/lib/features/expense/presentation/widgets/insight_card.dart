@@ -80,7 +80,7 @@ class InsightCard extends StatelessWidget {
           _InsightRow(
             icon: Icons.show_chart_rounded,
             text: context.l10n.avgDailySpendText(
-              CurrencyFormatter.format(insights.dailyAverage.dailyAverage),
+              CurrencyFormatter.formatValue(insights.dailyAverage.dailyAverage),
             ),
             accent: AppTheme.primary,
           ),

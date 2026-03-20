@@ -39,10 +39,10 @@ class ExpenseListCubit extends Cubit<ExpenseListState> {
         ],
       );
 
-      final List<Expense> allExpenses = _sortExpenses(
-        (response[0] as List<Expense>),
-        state.sortOption,
-      );
+      // Keep allExpenses in the original repo order (date desc).
+      // filteredExpenses handles the display sort so allExpenses remains a
+      // stable source for re-sorting without accumulating sort state.
+      final List<Expense> allExpenses = (response[0] as List<Expense>);
       final List<Category> categories =
           (response[1] as List<dynamic>).cast<Category>();
 
@@ -102,7 +102,6 @@ class ExpenseListCubit extends Cubit<ExpenseListState> {
     emit(
       state.copyWith(
         sortOption: option,
-        allExpenses: _sortExpenses(state.allExpenses, option),
         filteredExpenses: _applyFilters(
           source: state.allExpenses,
           categoryId: state.selectedCategoryId,
@@ -182,16 +181,45 @@ class ExpenseListCubit extends Cubit<ExpenseListState> {
     ExpenseSortOption option,
   ) {
     final List<Expense> sorted = List<Expense>.from(source);
+    final Map<String, int> originalIndexById = <String, int>{};
+    for (int index = 0; index < source.length; index++) {
+      originalIndexById[source[index].id] = index;
+    }
+
     sorted.sort((Expense first, Expense second) {
+      late final int primaryResult;
       switch (option) {
         case ExpenseSortOption.latest:
-          return second.date.compareTo(first.date);
+          primaryResult = second.date.compareTo(first.date);
+          break;
         case ExpenseSortOption.oldest:
-          return first.date.compareTo(second.date);
+          primaryResult = first.date.compareTo(second.date);
+          break;
         case ExpenseSortOption.amountHigh:
-          return second.amount.abs().compareTo(first.amount.abs());
+          primaryResult = second.amount.abs().compareTo(first.amount.abs());
+          break;
         case ExpenseSortOption.amountLow:
-          return first.amount.abs().compareTo(second.amount.abs());
+          primaryResult = first.amount.abs().compareTo(second.amount.abs());
+          break;
+      }
+
+      if (primaryResult != 0) {
+        return primaryResult;
+      }
+
+      final int firstIndex = originalIndexById[first.id] ?? 0;
+      final int secondIndex = originalIndexById[second.id] ?? 0;
+
+      switch (option) {
+        case ExpenseSortOption.latest:
+          // Same day: keep the original feed order (newer insertions first).
+          return firstIndex.compareTo(secondIndex);
+        case ExpenseSortOption.oldest:
+          // Same day: invert the original feed order for true "oldest first".
+          return secondIndex.compareTo(firstIndex);
+        case ExpenseSortOption.amountHigh:
+        case ExpenseSortOption.amountLow:
+          return firstIndex.compareTo(secondIndex);
       }
     });
     return sorted;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_ui_constants.dart';
+import '../../../../core/extensions/category_localization_extension.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/color_parser.dart';
@@ -27,7 +28,7 @@ class ExpenseCard extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final String locale = Localizations.localeOf(context).toString();
     final bool isIncome = expense.amount < 0;
-    final double absoluteAmount = expense.amount.abs();
+    final double absoluteAmount = expense.displayAmount.abs();
     final Color categoryColor =
         parseHexColor(category?.color, fallback: AppTheme.primary);
     final String subtitle = [
@@ -85,7 +86,7 @@ class ExpenseCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   Text(
-                    '${isIncome ? '+' : '-'}${CurrencyFormatter.format(absoluteAmount)}',
+                    '${isIncome ? '+' : '-'}${CurrencyFormatter.formatValue(absoluteAmount)}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: isIncome
                               ? AppTheme.positiveGreen
@@ -95,7 +96,7 @@ class ExpenseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xxs + 1),
                   Text(
-                    category?.name ?? context.l10n.categoryFallback,
+                    context.l10n.localizeCategory(category?.name),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

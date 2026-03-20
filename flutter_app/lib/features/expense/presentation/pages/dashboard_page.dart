@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_ui_constants.dart';
+import '../../../../core/cubit/auth_cubit.dart';
 import '../../../../core/extensions/error_localization_extension.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -54,6 +55,16 @@ class DashboardPage extends StatelessWidget {
               Localizations.localeOf(context).toString(),
             ).format(DateTime.now());
 
+        final DateTime now = DateTime.now();
+        final DateTime monthStart = DateTime(now.year, now.month, 1);
+        final DateTime monthEnd = DateTime(now.year, now.month + 1, 1);
+        final double monthIncome = state.allExpenses
+            .where((Expense e) =>
+                e.amount < 0 &&
+                !e.date.isBefore(monthStart) &&
+                e.date.isBefore(monthEnd))
+            .fold(0.0, (double sum, Expense e) => sum + e.displayAmount.abs());
+
         return RefreshIndicator(
           onRefresh: () =>
               context.read<DashboardCubit>().loadDashboard(showLoading: false),
@@ -70,6 +81,7 @@ class DashboardPage extends StatelessWidget {
               const SizedBox(height: AppSpacing.md + AppSpacing.xxs),
               _TotalExpenseCard(
                 total: monthTotal,
+                income: monthIncome,
                 percentage: state.insights?.monthly.percentageChange ?? 0,
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -164,6 +176,11 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final AuthState auth = context.watch<AuthCubit>().state;
+    final String name = (auth.displayName?.trim().isNotEmpty == true
+            ? auth.displayName!.trim()
+            : auth.username?.trim()) ??
+        '';
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
@@ -171,7 +188,9 @@ class _Header extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              context.l10n.helloDeveloper,
+              name.isEmpty
+                  ? context.l10n.helloDeveloper
+                  : context.l10n.helloName(name),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -203,10 +222,12 @@ class _Header extends StatelessWidget {
 class _TotalExpenseCard extends StatelessWidget {
   const _TotalExpenseCard({
     required this.total,
+    required this.income,
     required this.percentage,
   });
 
   final double total;
+  final double income;
   final double percentage;
 
   @override
@@ -253,47 +274,91 @@ class _TotalExpenseCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            CurrencyFormatter.format(total),
+            CurrencyFormatter.formatValue(total),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                 ),
           ),
           const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm + AppSpacing.xxs,
-              vertical: AppSpacing.sm - AppSpacing.xxs,
-            ),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? colorScheme.surface.withValues(alpha: 0.95)
-                  : Colors.white,
-              borderRadius:
-                  BorderRadius.circular(_DashboardMetrics.badgeRadius),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  increased
-                      ? Icons.arrow_upward_rounded
-                      : Icons.arrow_downward_rounded,
-                  size: _DashboardMetrics.badgeIconSize,
-                  color: badgeColor,
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm + AppSpacing.xxs,
+                  vertical: AppSpacing.sm - AppSpacing.xxs,
                 ),
-                const SizedBox(width: AppSpacing.sm - AppSpacing.xxs),
-                Text(
-                  context.l10n.summaryVsLastMonth(
-                    percentage.abs().toStringAsFixed(1),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? colorScheme.surface.withValues(alpha: 0.95)
+                      : Colors.white,
+                  borderRadius:
+                      BorderRadius.circular(_DashboardMetrics.badgeRadius),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(
+                      increased
+                          ? Icons.arrow_upward_rounded
+                          : Icons.arrow_downward_rounded,
+                      size: _DashboardMetrics.badgeIconSize,
+                      color: badgeColor,
+                    ),
+                    const SizedBox(width: AppSpacing.sm - AppSpacing.xxs),
+                    Text(
+                      context.l10n.summaryVsLastMonth(
+                        percentage.abs().toStringAsFixed(1),
+                      ),
+                      style: TextStyle(
+                        color: badgeColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 220),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm + AppSpacing.xxs,
+                    vertical: AppSpacing.sm - AppSpacing.xxs,
                   ),
-                  style: TextStyle(
-                    color: badgeColor,
-                    fontWeight: FontWeight.w700,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? colorScheme.surface.withValues(alpha: 0.95)
+                        : Colors.white,
+                    borderRadius:
+                        BorderRadius.circular(_DashboardMetrics.badgeRadius),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(
+                        Icons.arrow_downward_rounded,
+                        size: _DashboardMetrics.badgeIconSize,
+                        color: AppTheme.positiveGreen,
+                      ),
+                      const SizedBox(width: AppSpacing.sm - AppSpacing.xxs),
+                      Flexible(
+                        child: Text(
+                          '${context.l10n.incomeLabel}: ${CurrencyFormatter.formatValue(income)}',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            color: AppTheme.positiveGreen,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

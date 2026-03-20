@@ -44,17 +44,25 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       );
     }
 
-    await _synchronizePendingOperations();
-    final List<ExpenseModel> remoteExpenses =
-        await remoteDataSource.getExpenses();
-    await localDataSource.cacheExpenses(remoteExpenses);
-
-    return _filterExpenses(
-      remoteExpenses,
-      categoryId: categoryId,
-      startDate: startDate,
-      endDate: endDate,
-    );
+    try {
+      await _synchronizePendingOperations();
+      final List<ExpenseModel> remoteExpenses =
+          await remoteDataSource.getExpenses();
+      await localDataSource.cacheExpenses(remoteExpenses);
+      return _filterExpenses(
+        remoteExpenses,
+        categoryId: categoryId,
+        startDate: startDate,
+        endDate: endDate,
+      );
+    } catch (_) {
+      return _filterExpenses(
+        cachedExpenses,
+        categoryId: categoryId,
+        startDate: startDate,
+        endDate: endDate,
+      );
+    }
   }
 
   @override
@@ -90,20 +98,63 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     final List<CategoryModel> cachedCategories =
         await localDataSource.getCachedCategories();
 
-    if (cachedCategories.isNotEmpty) {
+    // If server-origin categories are cached, return them and sync in the
+    // background.  Offline-default IDs all start with the offline prefix.
+    final bool hasServerCategories = cachedCategories.any(
+      (CategoryModel c) => !c.id
+          .startsWith(ExpenseLocalDataSource.offlineDefaultPrefix),
+    );
+
+    if (cachedCategories.isNotEmpty && hasServerCategories) {
       _triggerBackgroundSyncAndRefresh();
       return _sortedCategories(cachedCategories);
     }
 
+    // Either cache is empty or contains only offline-defaults: try server.
     try {
       await _synchronizePendingOperations();
       final List<CategoryModel> remoteCategories =
           await remoteDataSource.getCategories();
-      await localDataSource.cacheCategories(remoteCategories);
+      await _remapAndCacheServerCategories(remoteCategories);
       return _sortedCategories(remoteCategories);
     } catch (_) {
-      return _sortedCategories(cachedCategories);
+      // Offline: seed/re-seed any missing hard-coded defaults.
+      await localDataSource.seedOfflineDefaultCategories();
+      return _sortedCategories(await localDataSource.getCachedCategories());
     }
+  }
+
+  /// Remaps any offline-default category IDs used in local expenses/queue to
+  /// the corresponding real server IDs (matched by name), then caches the
+  /// server category list.
+  Future<void> _remapAndCacheServerCategories(
+    List<CategoryModel> serverCategories,
+  ) async {
+    final List<CategoryModel> local =
+        await localDataSource.getCachedCategories();
+
+    for (final CategoryModel localCat in local) {
+      if (!localCat.id
+          .startsWith(ExpenseLocalDataSource.offlineDefaultPrefix)) {
+        continue;
+      }
+      final CategoryModel? match = serverCategories
+          .cast<CategoryModel?>()
+          .firstWhere(
+            (CategoryModel? s) =>
+                s?.name.trim().toLowerCase() ==
+                localCat.name.trim().toLowerCase(),
+            orElse: () => null,
+          );
+      if (match != null && match.id != localCat.id) {
+        await localDataSource.replaceCategoryIdAcrossStorage(
+          fromId: localCat.id,
+          toId: match.id,
+        );
+      }
+    }
+
+    await localDataSource.cacheCategories(serverCategories);
   }
 
   @override
@@ -183,7 +234,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     final Map<String, double> grouped = <String, double>{};
     for (final ExpenseModel expense in thisMonthExpenses) {
       grouped[expense.categoryId] =
-          (grouped[expense.categoryId] ?? 0) + expense.amount;
+          (grouped[expense.categoryId] ?? 0) + expense.displayAmount;
     }
 
     String? topCategoryId;
@@ -254,7 +305,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     final Map<String, double> groupedByDay = <String, double>{};
     for (final ExpenseModel expense in thisMonthExpenses) {
       final String day = _dateKey(expense.date);
-      groupedByDay[day] = (groupedByDay[day] ?? 0) + expense.amount;
+      groupedByDay[day] = (groupedByDay[day] ?? 0) + expense.displayAmount;
     }
 
     String? topDay;
@@ -336,7 +387,12 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         queue.removeAt(0);
         await localDataSource.savePendingOperations(queue);
       } on DioException catch (error) {
-        if (_isConnectivityError(error)) {
+        // Preserve the queue and stop syncing for errors that are not
+        // recoverable in the current session: no connectivity, or the server
+        // returned 401 (user is not authenticated yet — ops will be synced
+        // after login).
+        if (_isConnectivityError(error) ||
+            error.response?.statusCode == 401) {
           await localDataSource.savePendingOperations(queue);
           rethrow;
         }
@@ -506,6 +562,65 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
           await remoteDataSource.getCategories();
       await localDataSource.cacheCategories(remoteCategories);
     }
+
+    if (operation.type == PendingSyncOperationType.createExpense &&
+        statusCode == 400) {
+      // The expense was likely created in guest mode with an offline-default
+      // category ID (e.g. "offline-default-food") that the server doesn't
+      // recognise.  Find or create the matching server category, remap the ID
+      // everywhere, then re-insert the updated operation so the next loop
+      // iteration retries it with the correct server category ID.
+      final String? categoryId =
+          operation.payload['categoryId'] as String?;
+      if (categoryId != null &&
+          categoryId
+              .startsWith(ExpenseLocalDataSource.offlineDefaultPrefix)) {
+        final Map<String, String>? seed = ExpenseLocalDataSource
+            .offlineDefaultSeeds
+            .cast<Map<String, String>?>()
+            .firstWhere(
+              (Map<String, String>? s) => s?['id'] == categoryId,
+              orElse: () => null,
+            );
+        if (seed != null) {
+          try {
+            final List<CategoryModel> remote =
+                await remoteDataSource.getCategories();
+            CategoryModel? serverCat =
+                remote.cast<CategoryModel?>().firstWhere(
+                      (CategoryModel? c) =>
+                          c?.name.trim().toLowerCase() ==
+                          (seed['name'] ?? '').trim().toLowerCase(),
+                      orElse: () => null,
+                    );
+            if (serverCat == null) {
+              serverCat = await remoteDataSource.createCategory(
+                name: seed['name']!,
+                icon: seed['icon']!,
+                color: seed['color'],
+              );
+            }
+            await localDataSource.replaceCategoryIdAcrossStorage(
+              fromId: categoryId,
+              toId: serverCat.id,
+            );
+            _replaceCategoryIdInPendingQueue(
+              queue,
+              fromId: categoryId,
+              toId: serverCat.id,
+            );
+            // queue[0] now has the correct server category ID.
+            // Insert a copy at position 1 so the caller's removeAt(0) leaves
+            // the updated operation as the next item to process.
+            if (queue.isNotEmpty) {
+              queue.insert(1, queue.first);
+            }
+          } catch (_) {
+            // Could not resolve category — expense will be dropped.
+          }
+        }
+      }
+    }
   }
 
   void _replaceExpenseIdInPendingQueue(
@@ -630,7 +745,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         (response[1] as List<dynamic>).cast<CategoryModel>();
 
     await localDataSource.cacheExpenses(expenses);
-    await localDataSource.cacheCategories(categories);
+    await _remapAndCacheServerCategories(categories);
   }
 
   List<Expense> _filterExpenses(
@@ -700,7 +815,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   double _sumAmounts(List<ExpenseModel> source) {
     double total = 0;
     for (final ExpenseModel expense in source) {
-      total += expense.amount;
+      total += expense.displayAmount;
     }
     return _round2(total);
   }

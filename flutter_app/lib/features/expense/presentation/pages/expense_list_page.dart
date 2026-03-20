@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_ui_constants.dart';
 import '../../../../core/cubit/settings_cubit.dart';
 import '../../../../core/extensions/error_localization_extension.dart';
+import '../../../../core/extensions/category_localization_extension.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/utils/color_parser.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -131,7 +132,7 @@ class _FilterPanel extends StatelessWidget {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        category.name,
+                        context.l10n.localizeCategory(category.name),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -140,6 +141,35 @@ class _FilterPanel extends StatelessWidget {
               ),
             ],
             onChanged: cubit.setCategoryFilter,
+          ),
+          const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
+          DropdownButtonFormField<ExpenseSortOption>(
+            value: state.sortOption,
+            decoration: InputDecoration(
+              labelText: context.l10n.sortByLabel,
+              prefixIcon: const Icon(Icons.sort_rounded),
+            ),
+            items: <DropdownMenuItem<ExpenseSortOption>>[
+              DropdownMenuItem<ExpenseSortOption>(
+                value: ExpenseSortOption.latest,
+                child: Text(context.l10n.sortLatest),
+              ),
+              DropdownMenuItem<ExpenseSortOption>(
+                value: ExpenseSortOption.oldest,
+                child: Text(context.l10n.sortOldest),
+              ),
+              DropdownMenuItem<ExpenseSortOption>(
+                value: ExpenseSortOption.amountHigh,
+                child: Text(context.l10n.sortAmountHigh),
+              ),
+              DropdownMenuItem<ExpenseSortOption>(
+                value: ExpenseSortOption.amountLow,
+                child: Text(context.l10n.sortAmountLow),
+              ),
+            ],
+            onChanged: (ExpenseSortOption? option) {
+              if (option != null) cubit.setSortOption(option);
+            },
           ),
           const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
           Row(

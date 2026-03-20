@@ -150,7 +150,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Expanded(
             child: _SummaryItem(
               title: context.l10n.expenseLabel,
-              value: CurrencyFormatter.format(summary.totalExpense),
+              value: CurrencyFormatter.formatValue(summary.totalExpense),
               color: AppTheme.expenseRed,
             ),
           ),
@@ -162,7 +162,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Expanded(
             child: _SummaryItem(
               title: context.l10n.incomeLabel,
-              value: CurrencyFormatter.format(summary.totalIncome),
+              value: CurrencyFormatter.formatValue(summary.totalIncome),
               color: AppTheme.positiveGreen,
             ),
           ),
@@ -174,7 +174,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Expanded(
             child: _SummaryItem(
               title: context.l10n.netLabel,
-              value: CurrencyFormatter.format(summary.net),
+              value: CurrencyFormatter.formatValue(summary.net),
               color: summary.net >= 0
                   ? AppTheme.positiveGreen
                   : AppTheme.expenseRed,
@@ -287,7 +287,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 const Spacer(),
                 if (summary != null && summary.totalExpense > 0)
                   Text(
-                    '-${CurrencyFormatter.formatCompact(summary.totalExpense)}',
+                    '-${CurrencyFormatter.formatCompactValue(summary.totalExpense)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -298,7 +298,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                 if (summary != null && summary.totalIncome > 0)
                   Text(
-                    '+${CurrencyFormatter.formatCompact(summary.totalIncome)}',
+                    '+${CurrencyFormatter.formatCompactValue(summary.totalIncome)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -406,9 +406,9 @@ class _CalendarPageState extends State<CalendarPage> {
 
       summary.transactions.add(expense);
       if (expense.amount >= 0) {
-        summary.totalExpense += expense.amount;
+        summary.totalExpense += expense.displayAmount;
       } else {
-        summary.totalIncome += expense.amount.abs();
+        summary.totalIncome += expense.displayAmount.abs();
       }
     }
 
@@ -426,9 +426,9 @@ class _CalendarPageState extends State<CalendarPage> {
       }
 
       if (expense.amount >= 0) {
-        totalExpense += expense.amount;
+        totalExpense += expense.displayAmount;
       } else {
-        totalIncome += expense.amount.abs();
+        totalIncome += expense.displayAmount.abs();
       }
     }
 
@@ -567,11 +567,11 @@ class _CalendarTransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final bool isIncome = expense.amount < 0;
-    final double absoluteAmount = expense.amount.abs();
+    final double absoluteAmount = expense.displayAmount.abs();
     final Color amountColor =
         isIncome ? AppTheme.positiveGreen : AppTheme.expenseRed;
     final String amountLabel =
-        '${isIncome ? '+' : '-'}${CurrencyFormatter.format(absoluteAmount)}';
+        '${isIncome ? '+' : '-'}${CurrencyFormatter.formatValue(absoluteAmount)}';
 
     final String subtitle = [
       category?.name ?? context.l10n.categoryFallback,

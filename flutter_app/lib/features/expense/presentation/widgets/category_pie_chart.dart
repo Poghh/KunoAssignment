@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_ui_constants.dart';
+import '../../../../core/extensions/category_localization_extension.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -44,7 +45,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
     final Map<String, double> grouped = <String, double>{};
     for (final Expense expense in monthExpenses) {
       grouped[expense.categoryId] =
-          (grouped[expense.categoryId] ?? 0) + expense.amount;
+          (grouped[expense.categoryId] ?? 0) + expense.displayAmount;
     }
 
     final List<_SliceData> slices =
@@ -52,7 +53,9 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
       final Category? category = _findCategory(entry.key);
       return _SliceData(
         categoryId: entry.key,
-        categoryName: category?.name ?? context.l10n.otherCategory,
+        categoryName: category != null
+            ? context.l10n.localizeCategory(category.name)
+            : context.l10n.otherCategory,
         iconKey: category?.icon,
         amount: entry.value,
         color: _paletteColor(entry.key.hashCode),
@@ -139,7 +142,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                     ),
                   ),
                   Text(
-                    CurrencyFormatter.format(slice.amount),
+                    CurrencyFormatter.formatValue(slice.amount),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),

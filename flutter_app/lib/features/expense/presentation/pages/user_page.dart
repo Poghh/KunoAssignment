@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_ui_constants.dart';
 import '../../../../core/cubit/auth_cubit.dart';
 import '../../../../core/cubit/settings_cubit.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/pages/login_page.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -57,6 +59,38 @@ class _UserPageState extends State<UserPage> {
                     fontWeight: FontWeight.w700,
                   ),
             ),
+            if (auth.status == AuthStatus.guest) ...<Widget>[
+              const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm + AppSpacing.xxs,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: AppTheme.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    const Icon(Icons.account_circle_outlined,
+                        size: 18, color: AppTheme.primary),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        context.l10n.guestModeBanner,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: _UserMetrics.headerSpacing),
             _ProfileCard(
               displayName: profileDisplayName,
@@ -122,15 +156,28 @@ class _UserPageState extends State<UserPage> {
               },
             ),
             const SizedBox(height: AppSpacing.md),
-            FilledButton.tonalIcon(
-              onPressed: _handleLogout,
-              icon: const Icon(Icons.logout_rounded),
-              style: FilledButton.styleFrom(
-                minimumSize:
-                    const Size.fromHeight(_UserMetrics.logoutButtonHeight),
+            if (auth.status == AuthStatus.guest)
+              FilledButton.icon(
+                onPressed: _handleLoginToSync,
+                icon: const Icon(Icons.sync_rounded),
+                style: FilledButton.styleFrom(
+                  minimumSize:
+                      const Size.fromHeight(_UserMetrics.logoutButtonHeight),
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                ),
+                label: Text(context.l10n.loginToSyncButton),
+              )
+            else
+              FilledButton.tonalIcon(
+                onPressed: _handleLogout,
+                icon: const Icon(Icons.logout_rounded),
+                style: FilledButton.styleFrom(
+                  minimumSize:
+                      const Size.fromHeight(_UserMetrics.logoutButtonHeight),
+                ),
+                label: Text(context.l10n.logoutButton),
               ),
-              label: Text(context.l10n.logoutButton),
-            ),
             const SizedBox(height: AppSpacing.md),
             if (state.status == DashboardStatus.loading)
               Padding(
@@ -177,7 +224,7 @@ class _UserPageState extends State<UserPage> {
       final bool inCurrentMonth =
           expense.date.year == now.year && expense.date.month == now.month;
       if (inCurrentMonth && expense.amount > 0) {
-        total += expense.amount;
+        total += expense.displayAmount;
       }
     }
     return total;
@@ -292,8 +339,6 @@ class _UserPageState extends State<UserPage> {
         AppToast.error(context.l10n.requestFailed);
       }
     }
-
-    nameController.dispose();
   }
 
   Future<void> _openCategoryManagementPage() async {
@@ -312,6 +357,14 @@ class _UserPageState extends State<UserPage> {
 
     context.read<DashboardCubit>().loadDashboard(showLoading: false);
     context.read<ExpenseListCubit>().loadExpenses(showLoading: false);
+  }
+
+  Future<void> _handleLoginToSync() async {
+    await context.read<AuthCubit>().logout();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+    );
   }
 
   Future<void> _handleLogout() async {
@@ -555,14 +608,14 @@ class _MonthSummaryCard extends StatelessWidget {
               Expanded(
                 child: _SummaryItem(
                   label: context.l10n.summaryTotalThisMonth,
-                  value: CurrencyFormatter.format(summary.totalThisMonth),
+                  value: CurrencyFormatter.formatValue(summary.totalThisMonth),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: _SummaryItem(
                   label: context.l10n.summaryAvgDaily,
-                  value: CurrencyFormatter.format(summary.dailyAverage),
+                  value: CurrencyFormatter.formatValue(summary.dailyAverage),
                 ),
               ),
             ],
