@@ -1,0 +1,163 @@
+{
+  "categories": [
+    {
+      "id": "cat-food",
+      "name": "Food",
+      "color": "#EF5350",
+      "icon": "restaurant"
+    },
+    {
+      "id": "cat-transport",
+      "name": "Transport",
+      "color": "#42A5F5",
+      "icon": "directions_car"
+    },
+    {
+      "id": "cat-shopping",
+      "name": "Shopping",
+      "color": "#AB47BC",
+      "icon": "shopping_bag"
+    },
+    {
+      "id": "cat-utilities",
+      "name": "Utilities",
+      "color": "#FFA726",
+      "icon": "lightbulb"
+    },
+    {
+      "id": "cat-entertainment",
+      "name": "Entertainment",
+      "color": "#26A69A",
+      "icon": "movie"
+    },
+    {
+      "id": "cat-health",
+      "name": "Health",
+      "color": "#66BB6A",
+      "icon": "health_and_safety"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "exp-001",
+      "title": "Lunch Bowl",
+      "amount": 12.5,
+      "date": "2026-03-02",
+      "categoryId": "cat-food",
+      "location": "District 1",
+      "notes": "Quick lunch",
+      "createdAt": "2026-03-02T07:10:00.000Z",
+      "updatedAt": "2026-03-02T07:10:00.000Z"
+    },
+    {
+      "id": "exp-002",
+      "title": "Groceries",
+      "amount": 46.75,
+      "date": "2026-03-06",
+      "categoryId": "cat-food",
+      "location": "Co-op Mart",
+      "notes": "Weekly shopping",
+      "createdAt": "2026-03-06T12:00:00.000Z",
+      "updatedAt": "2026-03-06T12:00:00.000Z"
+    },
+    {
+      "id": "exp-003",
+      "title": "Taxi Ride",
+      "amount": 18,
+      "date": "2026-03-08",
+      "categoryId": "cat-transport",
+      "location": "Airport",
+      "notes": null,
+      "createdAt": "2026-03-08T03:00:00.000Z",
+      "updatedAt": "2026-03-08T03:00:00.000Z"
+    },
+    {
+      "id": "exp-004",
+      "title": "Dinner with Friends",
+      "amount": 32,
+      "date": "2026-03-08",
+      "categoryId": "cat-food",
+      "location": "Pho House",
+      "notes": "Birthday meetup",
+      "createdAt": "2026-03-08T14:40:00.000Z",
+      "updatedAt": "2026-03-08T14:40:00.000Z"
+    },
+    {
+      "id": "exp-005",
+      "title": "Movie Ticket",
+      "amount": 9,
+      "date": "2026-03-12",
+      "categoryId": "cat-entertainment",
+      "location": "CGV",
+      "notes": null,
+      "createdAt": "2026-03-12T11:15:00.000Z",
+      "updatedAt": "2026-03-12T11:15:00.000Z"
+    },
+    {
+      "id": "exp-006",
+      "title": "Protein Powder",
+      "amount": 24.5,
+      "date": "2026-03-15",
+      "categoryId": "cat-health",
+      "location": "Gym Store",
+      "notes": null,
+      "createdAt": "2026-03-15T09:20:00.000Z",
+      "updatedAt": "2026-03-15T09:20:00.000Z"
+    },
+    {
+      "id": "exp-007",
+      "title": "Electricity Bill",
+      "amount": 35.2,
+      "date": "2026-02-05",
+      "categoryId": "cat-utilities",
+      "location": null,
+      "notes": "Monthly bill",
+      "createdAt": "2026-02-05T05:00:00.000Z",
+      "updatedAt": "2026-02-05T05:00:00.000Z"
+    },
+    {
+      "id": "exp-008",
+      "title": "Bus Pass",
+      "amount": 8,
+      "date": "2026-02-10",
+      "categoryId": "cat-transport",
+      "location": null,
+      "notes": null,
+      "createdAt": "2026-02-10T07:00:00.000Z",
+      "updatedAt": "2026-02-10T07:00:00.000Z"
+    },
+    {
+      "id": "exp-009",
+      "title": "Valentine Dinner",
+      "amount": 61,
+      "date": "2026-02-14",
+      "categoryId": "cat-food",
+      "location": "Saigon Garden",
+      "notes": null,
+      "createdAt": "2026-02-14T13:30:00.000Z",
+      "updatedAt": "2026-02-14T13:30:00.000Z"
+    },
+    {
+      "id": "exp-010",
+      "title": "Online Shopping",
+      "amount": 52,
+      "date": "2026-02-21",
+      "categoryId": "cat-shopping",
+      "location": null,
+      "notes": "Office accessories",
+      "createdAt": "2026-02-21T09:10:00.000Z",
+      "updatedAt": "2026-02-21T09:10:00.000Z"
+    },
+    {
+      "id": "exp-011",
+      "title": "Coffee Beans",
+      "amount": 14.75,
+      "date": "2026-01-28",
+      "categoryId": "cat-food",
+      "location": "Local Roastery",
+      "notes": null,
+      "createdAt": "2026-01-28T10:45:00.000Z",
+      "updatedAt": "2026-01-28T10:45:00.000Z"
+    }
+  ]
+}

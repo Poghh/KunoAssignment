@@ -1,0 +1,21 @@
+{
+  "name": "expense-tracker-assignment",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Expense tracker backend for a Flutter technical assignment",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "nodemailer": "^6.10.1",
+    "sqlite3": "^5.1.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
