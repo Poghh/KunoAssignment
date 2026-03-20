@@ -8,10 +8,14 @@ A full-stack expense tracker demo built for technical interviews.
 
 ## Demo
 
+### Video Demo
+
+<video src="docs/screenshots/demo_review_20260320/videos/demo_compressed.mp4" controls width="320"></video>
+
+### Screenshots
+
 - Main screenshots: [docs/screenshots/demo_review_20260320/screenshots](docs/screenshots/demo_review_20260320/screenshots)
 - Feature highlights: [docs/screenshots/demo_review_20260320/highlights](docs/screenshots/demo_review_20260320/highlights)
-- Setup screenshot: [docs/screenshots/demo_review_20260320/screenshots/00-setup-preferences.png](docs/screenshots/demo_review_20260320/screenshots/00-setup-preferences.png)
-- Screenshot (Dashboard):
 
 ![Dashboard Screenshot](docs/screenshots/demo_review_20260320/screenshots/01-tong-quan.png)
 
