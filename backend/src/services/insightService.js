@@ -43,7 +43,6 @@ async function readInsightSource(userId) {
           amount_in_base AS amount,
           date,
           category_id AS categoryId,
-          location,
           notes,
           created_at AS createdAt,
           updated_at AS updatedAt
@@ -67,7 +66,6 @@ async function readInsightSource(userId) {
       amount: Number(item.amount),
       date: item.date,
       categoryId: item.categoryId,
-      location: item.location,
       notes: item.notes,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,

@@ -12,7 +12,7 @@ const { hashPassword, verifyPassword } = require('./passwordService');
 const DATA_FILE = path.join(__dirname, '..', 'data', 'data.json');
 const MOCK_DATA_FILE = path.join(__dirname, '..', 'data', 'mockData.json');
 const DB_FILE = path.join(__dirname, '..', 'data', 'app.sqlite');
-const DEMO_USERNAME = 'demo';
+const DEMO_USERNAME = 'demo@example.com';
 const DEMO_PASSWORD = '123456';
 const DEMO_DISPLAY_NAME = 'Demo User';
 const DEMO_CATEGORY_SEEDS = Object.freeze([
@@ -137,7 +137,7 @@ async function createSchema() {
   await run(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
-      username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
       password TEXT NOT NULL,
       display_name TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL,
@@ -182,7 +182,7 @@ async function createSchema() {
   await migrateCategoryOwnership();
   await backfillExpenseCurrencyData();
 
-  await run('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');
+  await run('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
   await run('CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id)');
   await run('CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date DESC)');
   await run('CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category_id)');
@@ -379,9 +379,9 @@ async function seedIfNeeded() {
 async function ensureDemoAccountData() {
   let demoUser = await get(
     `
-      SELECT id, username, password, display_name
+      SELECT id, email, password, display_name
       FROM users
-      WHERE username = ?
+      WHERE email = ?
       COLLATE NOCASE
       LIMIT 1
     `,
@@ -395,7 +395,7 @@ async function ensureDemoAccountData() {
 
     await run(
       `
-        INSERT INTO users (id, username, password, display_name, created_at, updated_at)
+        INSERT INTO users (id, email, password, display_name, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)
       `,
       [userId, DEMO_USERNAME, passwordHash, DEMO_DISPLAY_NAME, timestamp, timestamp],
@@ -403,7 +403,7 @@ async function ensureDemoAccountData() {
 
     demoUser = {
       id: userId,
-      username: DEMO_USERNAME,
+      email: DEMO_USERNAME,
       password: passwordHash,
       display_name: DEMO_DISPLAY_NAME,
     };
@@ -575,6 +575,12 @@ async function migrateUserColumns() {
 
   if (!columnNames.has('display_name')) {
     await run("ALTER TABLE users ADD COLUMN display_name TEXT NOT NULL DEFAULT ''");
+  }
+
+  // Rename legacy 'username' column to 'email' for existing databases.
+  if (columnNames.has('username') && !columnNames.has('email')) {
+    await run('ALTER TABLE users RENAME COLUMN username TO email');
+    await run('DROP INDEX IF EXISTS idx_users_username');
   }
 }
 

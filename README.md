@@ -117,6 +117,17 @@ flutter run
 
 For physical devices, update to your local machine IP.
 
+## Demo Account
+
+A seeded account is available immediately after the backend starts for the first time:
+
+| Field    | Value               |
+|----------|---------------------|
+| Email    | `demo@example.com`  |
+| Password | `123456`            |
+
+Pre-loaded with 8 sample expenses across multiple categories and currencies. You can also register a new account directly in the app.
+
 ## App Flow
 
 1. Setup Preferences (language, currency, theme)
@@ -260,7 +271,7 @@ class ExpenseFormCubit extends Cubit<ExpenseFormState> {
 
 - `POST /auth/register`
 - `POST /auth/login`
-- `GET /auth/profile/:username`
+- `GET /auth/profile/:email`
 - `PUT /auth/profile/display-name`
 
 ### Expenses (requires `x-username`)
@@ -291,7 +302,7 @@ class ExpenseFormCubit extends Cubit<ExpenseFormState> {
 
 ## Testing & Validation
 
-Run Flutter static checks and tests:
+Run Flutter static analysis and unit tests:
 
 ```bash
 cd flutter_app
@@ -299,7 +310,20 @@ fvm flutter analyze
 fvm flutter test
 ```
 
-## Notes for Interviewers
+Test coverage includes:
 
-- This project is intentionally easy to run: backend + Flutter app with minimal setup.
-- If needed, you can register a new account directly in the app and start testing immediately.
+- **`ExpenseListCubit`** — load, sort (latest/oldest/amount), filter by category + date range, delete
+- **`ExpenseFormCubit`** — category loading, form validation (title/amount/category), save, create/delete category
+- **`AuthCubit`** — login (success/failure/offline), register (validation guards), logout
+
+## Authentication
+
+Registration and login use **email + password**. Password is hashed with `scrypt` on the backend. All data is scoped per user via the `x-username` request header (contains the user's email after login).
+
+## Project Highlights
+
+- **Offline-first**: expenses are cached locally and synced when the server is reachable
+- **Currency-aware**: each transaction stores original currency, FX rate snapshot, and base amount separately
+- **Clean Architecture**: domain layer (entities, use cases, repository interfaces) has zero Flutter or network dependencies
+- **1 Screen = 1 Cubit**: each page owns exactly one Cubit with immutable, equatable state
+- **Full localization**: English and Vietnamese via ARB files — language switch takes effect immediately without restart

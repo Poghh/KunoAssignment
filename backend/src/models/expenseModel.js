@@ -64,14 +64,6 @@ function validateExpensePayload(payload, options = {}) {
     }
   }
 
-  if (Object.prototype.hasOwnProperty.call(payload, 'location')) {
-    if (payload.location != null && typeof payload.location !== 'string') {
-      errors.location = 'Location must be a string';
-    } else {
-      sanitized.location = payload.location ? payload.location.trim() : null;
-    }
-  }
-
   if (Object.prototype.hasOwnProperty.call(payload, 'notes')) {
     if (payload.notes != null && typeof payload.notes !== 'string') {
       errors.notes = 'Notes must be a string';

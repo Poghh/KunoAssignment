@@ -2,22 +2,22 @@ const { get } = require('../services/sqlite');
 const HttpError = require('../models/httpError');
 
 async function requireUserContext(req, _res, next) {
-  const rawUsername = req.header('x-username');
-  const username = typeof rawUsername === 'string' ? rawUsername.trim() : '';
+  const rawEmail = req.header('x-username');
+  const email = typeof rawEmail === 'string' ? rawEmail.trim() : '';
 
-  if (username.length < 2) {
+  if (email.length < 3) {
     throw new HttpError(401, 'Missing user context');
   }
 
   const user = await get(
     `
-      SELECT id, username, display_name
+      SELECT id, email, display_name
       FROM users
-      WHERE username = ?
+      WHERE email = ?
       COLLATE NOCASE
       LIMIT 1
     `,
-    [username],
+    [email],
   );
 
   if (!user) {
@@ -26,7 +26,7 @@ async function requireUserContext(req, _res, next) {
 
   req.user = {
     id: user.id,
-    username: user.username,
+    email: user.email,
     displayName: user.display_name || '',
   };
   next();

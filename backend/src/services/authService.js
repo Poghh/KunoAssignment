@@ -9,15 +9,15 @@ async function registerUser(payload) {
     `
       SELECT id
       FROM users
-      WHERE username = ?
+      WHERE email = ?
       COLLATE NOCASE
       LIMIT 1
     `,
-    [payload.username],
+    [payload.email],
   );
 
   if (existingUser) {
-    throw new HttpError(409, 'Username already exists');
+    throw new HttpError(409, 'Email already registered');
   }
 
   const userId = randomUUID();
@@ -26,21 +26,21 @@ async function registerUser(payload) {
 
   await run(
     `
-      INSERT INTO users (id, username, password, display_name, created_at, updated_at)
+      INSERT INTO users (id, email, password, display_name, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?)
     `,
-    [userId, payload.username, passwordHash, '', timestamp, timestamp],
+    [userId, payload.email, passwordHash, '', timestamp, timestamp],
   );
 
-  const createdUser = await getUserByUsername(payload.username);
+  const createdUser = await getUserByEmail(payload.email);
   return toUserResponse(createdUser);
 }
 
 async function loginUser(payload) {
-  const user = await getUserByUsername(payload.username);
+  const user = await getUserByEmail(payload.email);
 
   if (!user) {
-    throw new HttpError(401, 'Invalid username or password');
+    throw new HttpError(401, 'Invalid email or password');
   }
 
   const passwordValid = await verifyPassword({
@@ -48,7 +48,7 @@ async function loginUser(payload) {
     storedPassword: user.password,
   });
   if (!passwordValid) {
-    throw new HttpError(401, 'Invalid username or password');
+    throw new HttpError(401, 'Invalid email or password');
   }
 
   if (!isPasswordHash(user.password)) {
@@ -68,7 +68,7 @@ async function loginUser(payload) {
 }
 
 async function updateDisplayName(payload) {
-  const existing = await getUserByUsername(payload.username);
+  const existing = await getUserByEmail(payload.email);
 
   if (!existing) {
     throw new HttpError(404, 'User not found');
@@ -84,12 +84,12 @@ async function updateDisplayName(payload) {
     [payload.displayName, timestamp, existing.id],
   );
 
-  const updated = await getUserByUsername(payload.username);
+  const updated = await getUserByEmail(payload.email);
   return toUserResponse(updated);
 }
 
-async function getUserProfile(username) {
-  const user = await getUserByUsername(username);
+async function getUserProfile(email) {
+  const user = await getUserByEmail(email);
 
   if (!user) {
     throw new HttpError(404, 'User not found');
@@ -98,29 +98,29 @@ async function getUserProfile(username) {
   return toUserResponse(user);
 }
 
-async function getUserByUsername(username) {
+async function getUserByEmail(email) {
   return get(
     `
       SELECT
         id,
-        username,
+        email,
         password,
         display_name,
         created_at,
         updated_at
       FROM users
-      WHERE username = ?
+      WHERE email = ?
       COLLATE NOCASE
       LIMIT 1
     `,
-    [username],
+    [email],
   );
 }
 
 function toUserResponse(user) {
   return {
     id: user.id,
-    username: user.username,
+    email: user.email,
     displayName: user.display_name || '',
     createdAt: user.created_at,
     updatedAt: user.updated_at,
@@ -128,6 +128,7 @@ function toUserResponse(user) {
 }
 
 module.exports = {
+  getUserByEmail,
   getUserProfile,
   loginUser,
   registerUser,

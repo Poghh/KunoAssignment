@@ -43,7 +43,6 @@ async function listExpenses(filters = {}, userId) {
         amount_in_base,
         date,
         category_id,
-        location,
         notes,
         created_at,
         updated_at
@@ -96,12 +95,11 @@ async function createExpense(payload, userId) {
         amount_in_base,
         date,
         category_id,
-        location,
         notes,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
       expenseId,
@@ -113,7 +111,6 @@ async function createExpense(payload, userId) {
       amountInBase,
       payload.date,
       payload.categoryId,
-      payload.location || null,
       payload.notes || null,
       timestamp,
       timestamp,
@@ -131,7 +128,6 @@ async function createExpense(payload, userId) {
         amount_in_base,
         date,
         category_id,
-        location,
         notes,
         created_at,
         updated_at
@@ -216,11 +212,6 @@ async function updateExpense(expenseId, payload, userId) {
     params.push(payload.categoryId);
   }
 
-  if (Object.prototype.hasOwnProperty.call(payload, 'location')) {
-    fields.push('location = ?');
-    params.push(payload.location || null);
-  }
-
   if (Object.prototype.hasOwnProperty.call(payload, 'notes')) {
     fields.push('notes = ?');
     params.push(payload.notes || null);
@@ -266,7 +257,6 @@ async function updateExpense(expenseId, payload, userId) {
         amount_in_base,
         date,
         category_id,
-        location,
         notes,
         created_at,
         updated_at
@@ -303,7 +293,6 @@ function toExpenseResponse(row) {
     fxRateSnapshot: Number(row.fx_rate_snapshot),
     date: row.date,
     categoryId: row.category_id,
-    location: row.location,
     notes: row.notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

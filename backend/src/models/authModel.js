@@ -1,13 +1,16 @@
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function validateRegisterPayload(payload) {
   const errors = {};
   const sanitized = {};
 
-  if (typeof payload.username !== 'string' || payload.username.trim().length < 2) {
-    errors.username = 'Username must be at least 2 characters';
-  } else if (payload.username.trim().length > 40) {
-    errors.username = 'Username must be less than 40 characters';
+  const email = typeof payload.email === 'string' ? payload.email.trim() : '';
+  if (!EMAIL_REGEX.test(email)) {
+    errors.email = 'Enter a valid email address';
+  } else if (email.length > 254) {
+    errors.email = 'Email must be less than 254 characters';
   } else {
-    sanitized.username = payload.username.trim();
+    sanitized.email = email;
   }
 
   if (typeof payload.password !== 'string' || payload.password.trim().length < 6) {
@@ -29,10 +32,11 @@ function validateLoginPayload(payload) {
   const errors = {};
   const sanitized = {};
 
-  if (typeof payload.username !== 'string' || payload.username.trim().length < 2) {
-    errors.username = 'Username is invalid';
+  const email = typeof payload.email === 'string' ? payload.email.trim() : '';
+  if (!EMAIL_REGEX.test(email)) {
+    errors.email = 'Enter a valid email address';
   } else {
-    sanitized.username = payload.username.trim();
+    sanitized.email = email;
   }
 
   if (typeof payload.password !== 'string' || payload.password.trim().length < 6) {
@@ -52,10 +56,11 @@ function validateDisplayNamePayload(payload) {
   const errors = {};
   const sanitized = {};
 
-  if (typeof payload.username !== 'string' || payload.username.trim().length < 2) {
-    errors.username = 'Username is required';
+  const email = typeof payload.email === 'string' ? payload.email.trim() : '';
+  if (!EMAIL_REGEX.test(email)) {
+    errors.email = 'Email is required';
   } else {
-    sanitized.username = payload.username.trim();
+    sanitized.email = email;
   }
 
   if (typeof payload.displayName !== 'string' || payload.displayName.trim().length < 2) {
