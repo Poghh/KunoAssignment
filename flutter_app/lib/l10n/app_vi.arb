@@ -9,7 +9,15 @@
   "tabAdd": "Thêm",
   "tabCalendar": "Lịch",
   "tabUser": "Người dùng",
-  "helloDeveloper": "Xin chào",
+  "helloDeveloper": "Xin chào bạn",
+  "helloName": "Xin chào, {name}",
+  "@helloName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "categorySplitTitle": "Phân bổ danh mục",
   "categorySplitSubtitle": "Biểu đồ chi tiêu theo danh mục",
   "recentTransactionsTitle": "Giao dịch gần đây",
@@ -61,6 +69,14 @@
       }
     }
   },
+  "categoryNameFood": "Ăn uống",
+  "categoryNameTransport": "Di chuyển",
+  "categoryNameShopping": "Mua sắm",
+  "categoryNameUtilities": "Tiện ích",
+  "categoryNameEntertainment": "Giải trí",
+  "categoryNameHealth": "Sức khỏe",
+  "categoryNameBills": "Hóa đơn",
+  "categoryNameSalary": "Lương",
   "otherCategory": "Khác",
   "noCategorySpendingYetThisMonth": "Tháng này chưa có dữ liệu chi theo danh mục",
   "categoryFallback": "Danh mục",
@@ -86,6 +102,11 @@
   "categoryLabel": "Danh mục",
   "allCategories": "Tất cả danh mục",
   "filterByDate": "Lọc theo ngày",
+  "sortByLabel": "Sắp xếp",
+  "sortLatest": "Mới nhất trước",
+  "sortOldest": "Cũ nhất trước",
+  "sortAmountHigh": "Số tiền (cao → thấp)",
+  "sortAmountLow": "Số tiền (thấp → cao)",
   "failedLoadExpenses": "Không tải được danh sách chi tiêu",
   "noMatchingExpensesTitle": "Không có giao dịch phù hợp",
   "noMatchingExpensesDescription": "Hãy đổi bộ lọc hoặc thêm giao dịch mới.",
@@ -171,7 +192,7 @@
   "loginSuccess": "Đăng nhập thành công",
   "loginFailed": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
   "registerTitle": "Tạo tài khoản",
-  "registerSubtitle": "Nhập username và mật khẩu để tiếp tục",
+  "registerSubtitle": "Nhập email và mật khẩu để tiếp tục",
   "registerButton": "Đăng ký",
   "registerSuccess": "Đăng ký thành công. Vui lòng đăng nhập.",
   "registerFailed": "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.",
@@ -247,5 +268,9 @@
   "resourceNotFound": "Không tìm thấy dữ liệu.",
   "invalidRequestData": "Dữ liệu gửi lên không hợp lệ.",
   "unexpectedNetworkError": "Lỗi mạng không xác định.",
-  "somethingWentWrongTryAgain": "Có lỗi xảy ra. Vui lòng thử lại."
+  "somethingWentWrongTryAgain": "Có lỗi xảy ra. Vui lòng thử lại.",
+  "continueOfflineButton": "Dùng offline",
+  "guestModeBanner": "Bạn chưa đăng nhập. Dữ liệu được lưu trên thiết bị này.",
+  "loginToSyncButton": "Đăng nhập để đồng bộ",
+  "exitGuestModeButton": "Thoát chế độ offline"
 }

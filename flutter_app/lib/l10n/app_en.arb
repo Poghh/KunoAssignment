@@ -9,7 +9,15 @@
   "tabAdd": "Add",
   "tabCalendar": "Calendar",
   "tabUser": "User",
-  "helloDeveloper": "Hello, Developer",
+  "helloDeveloper": "Hello there",
+  "helloName": "Hello, {name}",
+  "@helloName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "categorySplitTitle": "Category Split",
   "categorySplitSubtitle": "Interactive spending chart",
   "recentTransactionsTitle": "Recent Transactions",
@@ -61,6 +69,14 @@
       }
     }
   },
+  "categoryNameFood": "Food",
+  "categoryNameTransport": "Transport",
+  "categoryNameShopping": "Shopping",
+  "categoryNameUtilities": "Utilities",
+  "categoryNameEntertainment": "Entertainment",
+  "categoryNameHealth": "Health",
+  "categoryNameBills": "Bills",
+  "categoryNameSalary": "Salary",
   "otherCategory": "Other",
   "noCategorySpendingYetThisMonth": "No category spending yet this month",
   "categoryFallback": "Category",
@@ -86,6 +102,11 @@
   "categoryLabel": "Category",
   "allCategories": "All categories",
   "filterByDate": "Filter by date",
+  "sortByLabel": "Sort by",
+  "sortLatest": "Latest first",
+  "sortOldest": "Oldest first",
+  "sortAmountHigh": "Amount (high → low)",
+  "sortAmountLow": "Amount (low → high)",
   "failedLoadExpenses": "Failed to load expenses",
   "noMatchingExpensesTitle": "No matching expenses",
   "noMatchingExpensesDescription": "Try adjusting filters or add a new expense.",
@@ -171,7 +192,7 @@
   "loginSuccess": "Logged in successfully",
   "loginFailed": "Login failed. Please check your credentials.",
   "registerTitle": "Create account",
-  "registerSubtitle": "Use username and password to continue",
+  "registerSubtitle": "Use email and password to continue",
   "registerButton": "Register",
   "registerSuccess": "Registered successfully. Please login.",
   "registerFailed": "Registration failed. Please check your input.",
@@ -247,5 +268,9 @@
   "resourceNotFound": "Resource not found.",
   "invalidRequestData": "Invalid request data.",
   "unexpectedNetworkError": "Unexpected network error.",
-  "somethingWentWrongTryAgain": "Something went wrong. Please try again."
+  "somethingWentWrongTryAgain": "Something went wrong. Please try again.",
+  "continueOfflineButton": "Continue offline",
+  "guestModeBanner": "You're not signed in. Data is saved locally on this device.",
+  "loginToSyncButton": "Sign in to Sync",
+  "exitGuestModeButton": "Exit offline mode"
 }

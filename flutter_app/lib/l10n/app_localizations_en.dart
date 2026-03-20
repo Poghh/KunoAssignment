@@ -36,7 +36,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabUser => 'User';
 
   @override
-  String get helloDeveloper => 'Hello, Developer';
+  String get helloDeveloper => 'Hello there';
+
+  @override
+  String helloName(String name) => 'Hello, $name';
 
   @override
   String get categorySplitTitle => 'Category Split';
@@ -98,6 +101,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get categoryNameFood => 'Food';
+
+  @override
+  String get categoryNameTransport => 'Transport';
+
+  @override
+  String get categoryNameShopping => 'Shopping';
+
+  @override
+  String get categoryNameUtilities => 'Utilities';
+
+  @override
+  String get categoryNameEntertainment => 'Entertainment';
+
+  @override
+  String get categoryNameHealth => 'Health';
+
+  @override
+  String get categoryNameBills => 'Bills';
+
+  @override
+  String get categoryNameSalary => 'Salary';
+
+  @override
   String get otherCategory => 'Other';
 
   @override
@@ -143,6 +170,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filterByDate => 'Filter by date';
+
+  @override
+  String get sortByLabel => 'Sort by';
+
+  @override
+  String get sortLatest => 'Latest first';
+
+  @override
+  String get sortOldest => 'Oldest first';
+
+  @override
+  String get sortAmountHigh => 'Amount (high → low)';
+
+  @override
+  String get sortAmountLow => 'Amount (low → high)';
 
   @override
   String get failedLoadExpenses => 'Failed to load expenses';
@@ -324,7 +366,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerTitle => 'Create account';
 
   @override
-  String get registerSubtitle => 'Use username and password to continue';
+  String get registerSubtitle => 'Use email and password to continue';
 
   @override
   String get registerButton => 'Register';
@@ -534,4 +576,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get somethingWentWrongTryAgain => 'Something went wrong. Please try again.';
+
+  @override
+  String get continueOfflineButton => 'Continue offline';
+
+  @override
+  String get guestModeBanner => 'You\'re not signed in. Data is saved locally on this device.';
+
+  @override
+  String get loginToSyncButton => 'Sign in to Sync';
+
+  @override
+  String get exitGuestModeButton => 'Exit offline mode';
 }

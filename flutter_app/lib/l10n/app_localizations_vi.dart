@@ -36,7 +36,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tabUser => 'Người dùng';
 
   @override
-  String get helloDeveloper => 'Xin chào';
+  String get helloDeveloper => 'Xin chào bạn';
+
+  @override
+  String helloName(String name) => 'Xin chào, $name';
 
   @override
   String get categorySplitTitle => 'Phân bổ danh mục';
@@ -98,6 +101,30 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get categoryNameFood => 'Ăn uống';
+
+  @override
+  String get categoryNameTransport => 'Di chuyển';
+
+  @override
+  String get categoryNameShopping => 'Mua sắm';
+
+  @override
+  String get categoryNameUtilities => 'Tiện ích';
+
+  @override
+  String get categoryNameEntertainment => 'Giải trí';
+
+  @override
+  String get categoryNameHealth => 'Sức khỏe';
+
+  @override
+  String get categoryNameBills => 'Hóa đơn';
+
+  @override
+  String get categoryNameSalary => 'Lương';
+
+  @override
   String get otherCategory => 'Khác';
 
   @override
@@ -143,6 +170,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get filterByDate => 'Lọc theo ngày';
+
+  @override
+  String get sortByLabel => 'Sắp xếp';
+
+  @override
+  String get sortLatest => 'Mới nhất trước';
+
+  @override
+  String get sortOldest => 'Cũ nhất trước';
+
+  @override
+  String get sortAmountHigh => 'Số tiền (cao → thấp)';
+
+  @override
+  String get sortAmountLow => 'Số tiền (thấp → cao)';
 
   @override
   String get failedLoadExpenses => 'Không tải được danh sách chi tiêu';
@@ -324,7 +366,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get registerTitle => 'Tạo tài khoản';
 
   @override
-  String get registerSubtitle => 'Nhập username và mật khẩu để tiếp tục';
+  String get registerSubtitle => 'Nhập email và mật khẩu để tiếp tục';
 
   @override
   String get registerButton => 'Đăng ký';
@@ -534,4 +576,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get somethingWentWrongTryAgain => 'Có lỗi xảy ra. Vui lòng thử lại.';
+
+  @override
+  String get continueOfflineButton => 'Dùng offline';
+
+  @override
+  String get guestModeBanner => 'Bạn chưa đăng nhập. Dữ liệu được lưu trên thiết bị này.';
+
+  @override
+  String get loginToSyncButton => 'Đăng nhập để đồng bộ';
+
+  @override
+  String get exitGuestModeButton => 'Thoát chế độ offline';
 }

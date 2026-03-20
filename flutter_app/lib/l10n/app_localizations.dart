@@ -155,6 +155,8 @@ abstract class AppLocalizations {
   /// **'Hello, Developer'**
   String get helloDeveloper;
 
+  String helloName(String name);
+
   /// No description provided for @categorySplitTitle.
   ///
   /// In en, this message translates to:
@@ -257,6 +259,30 @@ abstract class AppLocalizations {
   /// **'Avg daily spend: {amount}'**
   String avgDailySpendText(String amount);
 
+  /// No description provided for @categoryNameFood.
+  String get categoryNameFood;
+
+  /// No description provided for @categoryNameTransport.
+  String get categoryNameTransport;
+
+  /// No description provided for @categoryNameShopping.
+  String get categoryNameShopping;
+
+  /// No description provided for @categoryNameUtilities.
+  String get categoryNameUtilities;
+
+  /// No description provided for @categoryNameEntertainment.
+  String get categoryNameEntertainment;
+
+  /// No description provided for @categoryNameHealth.
+  String get categoryNameHealth;
+
+  /// No description provided for @categoryNameBills.
+  String get categoryNameBills;
+
+  /// No description provided for @categoryNameSalary.
+  String get categoryNameSalary;
+
   /// No description provided for @otherCategory.
   ///
   /// In en, this message translates to:
@@ -346,6 +372,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filter by date'**
   String get filterByDate;
+
+  /// No description provided for @sortByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get sortByLabel;
+
+  /// No description provided for @sortLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest first'**
+  String get sortLatest;
+
+  /// No description provided for @sortOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get sortOldest;
+
+  /// No description provided for @sortAmountHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount (high → low)'**
+  String get sortAmountHigh;
+
+  /// No description provided for @sortAmountLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount (low → high)'**
+  String get sortAmountLow;
 
   /// No description provided for @failedLoadExpenses.
   ///
@@ -692,7 +748,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Use username and password to continue'**
+  /// **'Use email and password to continue'**
   String get registerSubtitle;
 
   /// No description provided for @registerButton.
@@ -1108,6 +1164,14 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get somethingWentWrongTryAgain;
+
+  String get continueOfflineButton;
+
+  String get guestModeBanner;
+
+  String get loginToSyncButton;
+
+  String get exitGuestModeButton;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
