@@ -8,10 +8,12 @@ A full-stack expense tracker demo built for technical interviews.
 
 ## Demo
 
-- Demo video: [docs/demo/app-demo.mov](docs/demo/app-demo.mov)
+- Main screenshots: [docs/screenshots/demo_review_20260320/screenshots](docs/screenshots/demo_review_20260320/screenshots)
+- Feature highlights: [docs/screenshots/demo_review_20260320/highlights](docs/screenshots/demo_review_20260320/highlights)
+- Setup screenshot: [docs/screenshots/demo_review_20260320/screenshots/00-setup-preferences.png](docs/screenshots/demo_review_20260320/screenshots/00-setup-preferences.png)
 - Screenshot (Dashboard):
 
-![Dashboard Screenshot](docs/screenshots/dashboard.png)
+![Dashboard Screenshot](docs/screenshots/demo_review_20260320/screenshots/01-tong-quan.png)
 
 ## Quick Start
 
@@ -49,6 +51,7 @@ fvm use 3.32.0
 ```
 
 4. Install Xcode (for iOS)
+
 - Install Xcode from App Store
 - Then run:
 
@@ -299,5 +302,4 @@ fvm flutter test
 ## Notes for Interviewers
 
 - This project is intentionally easy to run: backend + Flutter app with minimal setup.
-- SMTP is optional and not required for evaluation.
 - If needed, you can register a new account directly in the app and start testing immediately.
