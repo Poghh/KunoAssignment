@@ -1,0 +1,251 @@
+{
+  "@@locale": "vi",
+  "appTitle": "Quản Lý Chi Tiêu",
+  "commonRetry": "Thử lại",
+  "commonCancel": "Hủy",
+  "commonDelete": "Xóa",
+  "tabDashboard": "Tổng quan",
+  "tabCashflow": "Thu - Chi",
+  "tabAdd": "Thêm",
+  "tabCalendar": "Lịch",
+  "tabUser": "Người dùng",
+  "helloDeveloper": "Xin chào",
+  "categorySplitTitle": "Phân bổ danh mục",
+  "categorySplitSubtitle": "Biểu đồ chi tiêu theo danh mục",
+  "recentTransactionsTitle": "Giao dịch gần đây",
+  "recentTransactionsSubtitle": "5 khoản chi tiêu mới nhất",
+  "noExpensesYetTitle": "Chưa có giao dịch",
+  "noExpensesYetDescription": "Nhấn Thêm để bắt đầu theo dõi chi tiêu.",
+  "totalThisMonth": "Tổng tháng này",
+  "summaryVsLastMonth": "{percentage}% so với tháng trước",
+  "@summaryVsLastMonth": {
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      }
+    }
+  },
+  "failedLoadDashboard": "Không tải được tổng quan",
+  "spendingInsightsTitle": "Thông tin chi tiêu",
+  "insightTrendIncreased": "tăng",
+  "insightTrendDecreased": "giảm",
+  "insightTopCategoryFallback": "Danh mục nổi bật",
+  "insightLineOne": "{categoryName} {trendVerb} {percentage}%",
+  "@insightLineOne": {
+    "placeholders": {
+      "categoryName": {
+        "type": "String"
+      },
+      "trendVerb": {
+        "type": "String"
+      },
+      "percentage": {
+        "type": "String"
+      }
+    }
+  },
+  "insightTopDayEmpty": "Chưa có ngày chi tiêu nổi bật trong tháng",
+  "insightTopDayText": "Bạn chi tiêu nhiều nhất vào {weekday}",
+  "@insightTopDayText": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "avgDailySpendText": "Chi tiêu trung bình/ngày: {amount}",
+  "@avgDailySpendText": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "otherCategory": "Khác",
+  "noCategorySpendingYetThisMonth": "Tháng này chưa có dữ liệu chi theo danh mục",
+  "categoryFallback": "Danh mục",
+  "calendarTitle": "Lịch",
+  "failedLoadCalendar": "Không tải được lịch",
+  "expenseLabel": "Chi",
+  "incomeLabel": "Thu",
+  "netLabel": "Ròng",
+  "selectedDaySummary": "Chi: {expense}  |  Thu: {income}",
+  "@selectedDaySummary": {
+    "placeholders": {
+      "expense": {
+        "type": "String"
+      },
+      "income": {
+        "type": "String"
+      }
+    }
+  },
+  "noTransactionsForDay": "Không có giao dịch trong ngày này.",
+  "expensesTitle": "Chi tiêu",
+  "clearFilters": "Xóa bộ lọc",
+  "categoryLabel": "Danh mục",
+  "allCategories": "Tất cả danh mục",
+  "filterByDate": "Lọc theo ngày",
+  "failedLoadExpenses": "Không tải được danh sách chi tiêu",
+  "noMatchingExpensesTitle": "Không có giao dịch phù hợp",
+  "noMatchingExpensesDescription": "Hãy đổi bộ lọc hoặc thêm giao dịch mới.",
+  "deleteExpenseTitle": "Xóa giao dịch?",
+  "removeExpensePermanently": "Xóa \"{title}\" vĩnh viễn?",
+  "@removeExpensePermanently": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "expenseDeleted": "Đã xóa giao dịch",
+  "deleteExpenseFailed": "Xóa giao dịch thất bại. Vui lòng thử lại.",
+  "addTransactionTitle": "Thêm giao dịch",
+  "editTransactionTitle": "Sửa giao dịch",
+  "transactionAddedSuccessfully": "Thêm giao dịch thành công",
+  "transactionUpdatedSuccessfully": "Cập nhật giao dịch thành công",
+  "saveTransactionFailed": "Lưu giao dịch thất bại. Vui lòng thử lại.",
+  "noCategoriesAvailableTitle": "Chưa có danh mục",
+  "noCategoriesAvailableDescription": "Hãy tạo danh mục đầu tiên để thêm giao dịch.",
+  "transactionTypeExpense": "Chi",
+  "transactionTypeIncome": "Thu",
+  "titleLabel": "Tiêu đề",
+  "titleValidationError": "Tiêu đề phải có ít nhất 2 ký tự",
+  "amountLabel": "Số tiền",
+  "amountValidationError": "Vui lòng nhập số tiền hợp lệ",
+  "categoryValidationError": "Vui lòng chọn danh mục",
+  "addCategoryButton": "Thêm danh mục",
+  "createCategoryTitle": "Tạo danh mục",
+  "createCategoryLabel": "Tên danh mục",
+  "createCategoryIconLabel": "Biểu tượng",
+  "createCategoryColorLabel": "Màu sắc",
+  "createCategoryValidationError": "Tên danh mục phải có ít nhất 2 ký tự",
+  "createCategoryConfirm": "Tạo",
+  "createCategoryFailed": "Không tạo được danh mục. Vui lòng thử lại.",
+  "deleteCategoryButton": "Xóa danh mục",
+  "deleteCategoryTitle": "Xóa danh mục?",
+  "deleteCategoryConfirmMessage": "Xóa danh mục \"{name}\"?",
+  "@deleteCategoryConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCategorySuccess": "Đã xóa danh mục",
+  "deleteCategoryFailed": "Không thể xóa danh mục. Vui lòng thử lại.",
+  "deleteCategoryInUse": "Không thể xóa danh mục vì đang có giao dịch.",
+  "categoryCreatedSuccessfully": "Đã tạo danh mục \"{name}\"",
+  "@categoryCreatedSuccessfully": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryManagementTitle": "Quản lý danh mục",
+  "categoryManagementSubtitle": "Tạo danh mục mới và xóa các danh mục chưa có giao dịch.",
+  "manageCategoriesButton": "Quản lý danh mục",
+  "manageCategoriesDescription": "Xem toàn bộ danh mục và dọn dẹp danh mục không còn dùng.",
+  "categoryUsageEmpty": "Chưa có giao dịch",
+  "categoryUsageCount": "{count} giao dịch",
+  "@categoryUsageCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "dateLabel": "Ngày",
+  "locationLabel": "Địa điểm",
+  "notesLabel": "Ghi chú",
+  "saveTransactionButton": "Lưu giao dịch",
+  "updateTransactionButton": "Cập nhật giao dịch",
+  "userTitle": "Người dùng",
+  "loginTitle": "Chào mừng quay lại",
+  "loginSubtitle": "Đăng nhập để tiếp tục quản lý thu chi",
+  "loginPasswordLabel": "Mật khẩu",
+  "loginButton": "Đăng nhập",
+  "loginEmailValidationError": "Vui lòng nhập email hợp lệ",
+  "loginPasswordValidationError": "Mật khẩu phải có ít nhất 6 ký tự",
+  "loginSuccess": "Đăng nhập thành công",
+  "loginFailed": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+  "registerTitle": "Tạo tài khoản",
+  "registerSubtitle": "Nhập username và mật khẩu để tiếp tục",
+  "registerButton": "Đăng ký",
+  "registerSuccess": "Đăng ký thành công. Vui lòng đăng nhập.",
+  "registerFailed": "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.",
+  "registerUsernameLabel": "Tên người dùng",
+  "registerUsernameValidationError": "Tên người dùng phải có ít nhất 2 ký tự",
+  "confirmPasswordLabel": "Xác nhận mật khẩu",
+  "confirmPasswordValidationError": "Mật khẩu xác nhận không khớp",
+  "noAccountPrompt": "Chưa có tài khoản?",
+  "registerNowButton": "Đăng ký ngay",
+  "loginNowButton": "Quay lại đăng nhập",
+  "logoutButton": "Đăng xuất",
+  "logoutConfirmTitle": "Đăng xuất?",
+  "logoutConfirmMessage": "Bạn có muốn đăng xuất khỏi thiết bị này không?",
+  "logoutSuccess": "Đã đăng xuất",
+  "setupTitle": "Trước khi bắt đầu",
+  "setupSubtitle": "Chọn ngôn ngữ và đơn vị tiền tệ mặc định",
+  "setupLanguageLabel": "Ngôn ngữ ưu tiên",
+  "setupCurrencyLabel": "Tiền tệ mặc định",
+  "setupThemeLabel": "Giao diện",
+  "setupThemeLight": "Sáng",
+  "setupThemeDark": "Tối",
+  "setupNextButton": "Tiếp theo",
+  "setupContinueButton": "Tiếp tục",
+  "setupSaved": "Đã lưu tùy chọn",
+  "settingsTitle": "Cài đặt",
+  "settingsSubtitle": "Ngôn ngữ, tiền tệ và giao diện",
+  "currencyFormatUpdated": "Đã cập nhật định dạng tiền tệ",
+  "darkModeEnabled": "Đã bật chế độ tối",
+  "lightModeEnabled": "Đã bật chế độ sáng",
+  "monthlySummaryTitle": "Tổng kết tháng",
+  "monthlySummarySubtitle": "Tóm tắt đơn giản trong tháng hiện tại",
+  "syncingData": "Đang đồng bộ dữ liệu...",
+  "editProfileTitle": "Chỉnh sửa hồ sơ",
+  "userDefaultDisplayName": "Tài khoản của bạn",
+  "displayNameLabel": "Tên hiển thị",
+  "displayNameSetupTitle": "Chúng tôi sẽ gọi bạn là gì?",
+  "displayNameSetupSubtitle": "Thiết lập tên hiển thị để cá nhân hóa trải nghiệm của bạn.",
+  "displayNameSetupHint": "Nhập tên hiển thị",
+  "displayNameSetupValidationError": "Tên hiển thị phải có ít nhất 2 ký tự",
+  "displayNameSetupButton": "Tiếp tục",
+  "displayNameSaved": "Đã lưu tên hiển thị",
+  "emailLabel": "Email",
+  "saveProfileButton": "Lưu hồ sơ",
+  "profileUpdated": "Đã cập nhật hồ sơ",
+  "editProfileTooltip": "Chỉnh sửa hồ sơ",
+  "languageLabel": "Ngôn ngữ",
+  "languageCurrencyLabel": "Ngôn ngữ / Tiền tệ",
+  "languageEnglishUsd": "English",
+  "languageVietnameseVnd": "Tiếng Việt",
+  "currencyUnitLabel": "Đơn vị tiền tệ",
+  "currencyUnitUsd": "Đô la Mỹ (USD)",
+  "currencyUnitVnd": "Đồng Việt Nam (VND)",
+  "languageUpdated": "Đã cập nhật ngôn ngữ",
+  "currencyUnitUpdated": "Đã cập nhật đơn vị tiền tệ",
+  "darkModeTitle": "Chế độ tối",
+  "darkModeSubtitle": "Sử dụng giao diện tối cho ứng dụng",
+  "summaryTotalThisMonth": "Tổng tháng này",
+  "summaryAvgDaily": "TB mỗi ngày",
+  "requestFailed": "Yêu cầu thất bại",
+  "requestTimeoutTryAgain": "Yêu cầu quá thời gian. Vui lòng thử lại.",
+  "networkUnavailableCheckConnection": "Không thể kết nối tới máy chủ. Vui lòng kiểm tra mạng.",
+  "requestCancelled": "Yêu cầu đã bị hủy.",
+  "serverErrorTryLater": "Lỗi máy chủ ({statusCode}). Vui lòng thử lại sau.",
+  "@serverErrorTryLater": {
+    "placeholders": {
+      "statusCode": {
+        "type": "String"
+      }
+    }
+  },
+  "unauthorizedRequest": "Yêu cầu chưa được xác thực.",
+  "forbiddenRequest": "Bạn không có quyền truy cập.",
+  "resourceNotFound": "Không tìm thấy dữ liệu.",
+  "invalidRequestData": "Dữ liệu gửi lên không hợp lệ.",
+  "unexpectedNetworkError": "Lỗi mạng không xác định.",
+  "somethingWentWrongTryAgain": "Có lỗi xảy ra. Vui lòng thử lại."
+}

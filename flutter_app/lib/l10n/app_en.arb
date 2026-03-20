@@ -1,0 +1,251 @@
+{
+  "@@locale": "en",
+  "appTitle": "Expense Tracker",
+  "commonRetry": "Retry",
+  "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "tabDashboard": "Dashboard",
+  "tabCashflow": "Cashflow",
+  "tabAdd": "Add",
+  "tabCalendar": "Calendar",
+  "tabUser": "User",
+  "helloDeveloper": "Hello, Developer",
+  "categorySplitTitle": "Category Split",
+  "categorySplitSubtitle": "Interactive spending chart",
+  "recentTransactionsTitle": "Recent Transactions",
+  "recentTransactionsSubtitle": "Latest 5 expenses",
+  "noExpensesYetTitle": "No expenses yet",
+  "noExpensesYetDescription": "Tap Add Expense to track your first spending.",
+  "totalThisMonth": "Total this month",
+  "summaryVsLastMonth": "{percentage}% vs last month",
+  "@summaryVsLastMonth": {
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      }
+    }
+  },
+  "failedLoadDashboard": "Failed to load dashboard",
+  "spendingInsightsTitle": "Spending Insights",
+  "insightTrendIncreased": "increased",
+  "insightTrendDecreased": "decreased",
+  "insightTopCategoryFallback": "Top category",
+  "insightLineOne": "{categoryName} {trendVerb} by {percentage}%",
+  "@insightLineOne": {
+    "placeholders": {
+      "categoryName": {
+        "type": "String"
+      },
+      "trendVerb": {
+        "type": "String"
+      },
+      "percentage": {
+        "type": "String"
+      }
+    }
+  },
+  "insightTopDayEmpty": "No top spending day yet this month",
+  "insightTopDayText": "You spend most on {weekday}",
+  "@insightTopDayText": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "avgDailySpendText": "Avg daily spend: {amount}",
+  "@avgDailySpendText": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "otherCategory": "Other",
+  "noCategorySpendingYetThisMonth": "No category spending yet this month",
+  "categoryFallback": "Category",
+  "calendarTitle": "Calendar",
+  "failedLoadCalendar": "Failed to load calendar",
+  "expenseLabel": "Expense",
+  "incomeLabel": "Income",
+  "netLabel": "Net",
+  "selectedDaySummary": "Expense: {expense}  |  Income: {income}",
+  "@selectedDaySummary": {
+    "placeholders": {
+      "expense": {
+        "type": "String"
+      },
+      "income": {
+        "type": "String"
+      }
+    }
+  },
+  "noTransactionsForDay": "No transactions for this day.",
+  "expensesTitle": "Expenses",
+  "clearFilters": "Clear Filters",
+  "categoryLabel": "Category",
+  "allCategories": "All categories",
+  "filterByDate": "Filter by date",
+  "failedLoadExpenses": "Failed to load expenses",
+  "noMatchingExpensesTitle": "No matching expenses",
+  "noMatchingExpensesDescription": "Try adjusting filters or add a new expense.",
+  "deleteExpenseTitle": "Delete expense?",
+  "removeExpensePermanently": "Remove \"{title}\" permanently?",
+  "@removeExpensePermanently": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "expenseDeleted": "Expense deleted",
+  "deleteExpenseFailed": "Failed to delete expense. Please retry.",
+  "addTransactionTitle": "Add Transaction",
+  "editTransactionTitle": "Edit Transaction",
+  "transactionAddedSuccessfully": "Transaction added successfully",
+  "transactionUpdatedSuccessfully": "Transaction updated successfully",
+  "saveTransactionFailed": "Failed to save transaction. Please retry.",
+  "noCategoriesAvailableTitle": "No categories available",
+  "noCategoriesAvailableDescription": "Create your first category to add transactions.",
+  "transactionTypeExpense": "Expense",
+  "transactionTypeIncome": "Income",
+  "titleLabel": "Title",
+  "titleValidationError": "Title must have at least 2 characters",
+  "amountLabel": "Amount",
+  "amountValidationError": "Enter a valid amount",
+  "categoryValidationError": "Please select a category",
+  "addCategoryButton": "Add category",
+  "createCategoryTitle": "Create Category",
+  "createCategoryLabel": "Category name",
+  "createCategoryIconLabel": "Icon",
+  "createCategoryColorLabel": "Color",
+  "createCategoryValidationError": "Category name must have at least 2 characters",
+  "createCategoryConfirm": "Create",
+  "createCategoryFailed": "Failed to create category. Please retry.",
+  "deleteCategoryButton": "Delete category",
+  "deleteCategoryTitle": "Delete category?",
+  "deleteCategoryConfirmMessage": "Delete category \"{name}\"?",
+  "@deleteCategoryConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCategorySuccess": "Category deleted",
+  "deleteCategoryFailed": "Unable to delete category. Please retry.",
+  "deleteCategoryInUse": "Cannot delete category because it has existing transactions.",
+  "categoryCreatedSuccessfully": "Category \"{name}\" created",
+  "@categoryCreatedSuccessfully": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryManagementTitle": "Category Management",
+  "categoryManagementSubtitle": "Create categories and delete ones that are no longer used.",
+  "manageCategoriesButton": "Manage categories",
+  "manageCategoriesDescription": "View all categories and clean up unused ones.",
+  "categoryUsageEmpty": "No transactions yet",
+  "categoryUsageCount": "{count} transactions",
+  "@categoryUsageCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "dateLabel": "Date",
+  "locationLabel": "Location",
+  "notesLabel": "Notes",
+  "saveTransactionButton": "Save Transaction",
+  "updateTransactionButton": "Update Transaction",
+  "userTitle": "User",
+  "loginTitle": "Welcome back",
+  "loginSubtitle": "Sign in to continue tracking your expenses",
+  "loginPasswordLabel": "Password",
+  "loginButton": "Login",
+  "loginEmailValidationError": "Enter a valid email",
+  "loginPasswordValidationError": "Password must have at least 6 characters",
+  "loginSuccess": "Logged in successfully",
+  "loginFailed": "Login failed. Please check your credentials.",
+  "registerTitle": "Create account",
+  "registerSubtitle": "Use username and password to continue",
+  "registerButton": "Register",
+  "registerSuccess": "Registered successfully. Please login.",
+  "registerFailed": "Registration failed. Please check your input.",
+  "registerUsernameLabel": "Username",
+  "registerUsernameValidationError": "Username must have at least 2 characters",
+  "confirmPasswordLabel": "Confirm password",
+  "confirmPasswordValidationError": "Confirm password does not match",
+  "noAccountPrompt": "No account yet?",
+  "registerNowButton": "Register now",
+  "loginNowButton": "Back to login",
+  "logoutButton": "Logout",
+  "logoutConfirmTitle": "Logout?",
+  "logoutConfirmMessage": "Do you want to logout from this device?",
+  "logoutSuccess": "Logged out",
+  "setupTitle": "Before you start",
+  "setupSubtitle": "Setup your preferences",
+  "setupLanguageLabel": "Language",
+  "setupCurrencyLabel": "Currency",
+  "setupThemeLabel": "Theme",
+  "setupThemeLight": "Light",
+  "setupThemeDark": "Dark",
+  "setupNextButton": "Next",
+  "setupContinueButton": "Continue",
+  "setupSaved": "Preferences saved",
+  "settingsTitle": "Settings",
+  "settingsSubtitle": "Language, currency and appearance",
+  "currencyFormatUpdated": "Currency format updated",
+  "darkModeEnabled": "Dark mode enabled",
+  "lightModeEnabled": "Light mode enabled",
+  "monthlySummaryTitle": "Monthly Summary",
+  "monthlySummarySubtitle": "Simple overview of current month",
+  "syncingData": "Syncing data...",
+  "editProfileTitle": "Edit Profile",
+  "userDefaultDisplayName": "Your Account",
+  "displayNameLabel": "Display name",
+  "displayNameSetupTitle": "What should we call you?",
+  "displayNameSetupSubtitle": "Set your display name to personalize your experience.",
+  "displayNameSetupHint": "Enter your display name",
+  "displayNameSetupValidationError": "Display name must have at least 2 characters",
+  "displayNameSetupButton": "Continue",
+  "displayNameSaved": "Display name saved",
+  "emailLabel": "Email",
+  "saveProfileButton": "Save Profile",
+  "profileUpdated": "Profile updated",
+  "editProfileTooltip": "Edit Profile",
+  "languageLabel": "Language",
+  "languageCurrencyLabel": "Language / Currency",
+  "languageEnglishUsd": "English",
+  "languageVietnameseVnd": "Tiếng Việt",
+  "currencyUnitLabel": "Currency Unit",
+  "currencyUnitUsd": "US Dollar (USD)",
+  "currencyUnitVnd": "Vietnamese Dong (VND)",
+  "languageUpdated": "Language updated",
+  "currencyUnitUpdated": "Currency unit updated",
+  "darkModeTitle": "Dark Mode",
+  "darkModeSubtitle": "Use dark appearance for the app",
+  "summaryTotalThisMonth": "Total this month",
+  "summaryAvgDaily": "Avg daily",
+  "requestFailed": "Request failed",
+  "requestTimeoutTryAgain": "Request timeout. Please try again.",
+  "networkUnavailableCheckConnection": "Unable to connect to server. Please check your network.",
+  "requestCancelled": "Request cancelled.",
+  "serverErrorTryLater": "Server error ({statusCode}). Please try again later.",
+  "@serverErrorTryLater": {
+    "placeholders": {
+      "statusCode": {
+        "type": "String"
+      }
+    }
+  },
+  "unauthorizedRequest": "Unauthorized request.",
+  "forbiddenRequest": "Forbidden request.",
+  "resourceNotFound": "Resource not found.",
+  "invalidRequestData": "Invalid request data.",
+  "unexpectedNetworkError": "Unexpected network error.",
+  "somethingWentWrongTryAgain": "Something went wrong. Please try again."
+}
