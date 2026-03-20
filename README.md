@@ -10,7 +10,7 @@ A full-stack expense tracker demo built for technical interviews.
 
 ### Video Demo
 
-[![Demo Video](docs/screenshots/demo_review_20260320/screenshots/01-tong-quan.png)](docs/screenshots/demo_review_20260320/videos/demo.mp4)
+[![Demo Video](https://img.youtube.com/vi/udnhg-69mQ4/maxresdefault.jpg)](https://www.youtube.com/watch?v=udnhg-69mQ4)
 
 ### Screenshots
 
@@ -125,10 +125,10 @@ For physical devices, update to your local machine IP.
 
 A seeded account is available immediately after the backend starts for the first time:
 
-| Field    | Value               |
-|----------|---------------------|
-| Email    | `demo@example.com`  |
-| Password | `123456`            |
+| Field    | Value              |
+| -------- | ------------------ |
+| Email    | `demo@example.com` |
+| Password | `123456`           |
 
 Pre-loaded with 8 sample expenses across multiple categories and currencies. You can also register a new account directly in the app.
 
