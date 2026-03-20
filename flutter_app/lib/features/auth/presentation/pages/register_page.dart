@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_ui_constants.dart';
 import '../../../../core/cubit/auth_cubit.dart';
+import '../../../../core/extensions/error_localization_extension.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/widgets/app_loading_filled_button.dart';
 import '../../../../core/widgets/app_toast.dart';
@@ -18,21 +19,23 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  late final TextEditingController _usernameController;
+  late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   late final TextEditingController _confirmPasswordController;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void initState() {
     super.initState();
-    _usernameController = TextEditingController();
+    _emailController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -44,7 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     final bool success = await context.read<AuthCubit>().register(
-          username: _usernameController.text,
+          email: _emailController.text,
           password: _passwordController.text,
         );
 
@@ -56,7 +59,11 @@ class _RegisterPageState extends State<RegisterPage> {
       AppToast.success(context.l10n.registerSuccess);
       Navigator.of(context).pop();
     } else {
-      AppToast.error(context.l10n.registerFailed);
+      final String? message = context.read<AuthCubit>().state.errorMessage;
+      AppToast.error(context.localizeErrorMessage(
+        message,
+        fallback: context.l10n.registerFailed,
+      ));
     }
   }
 
@@ -77,15 +84,17 @@ class _RegisterPageState extends State<RegisterPage> {
                   subtitle: context.l10n.registerSubtitle,
                 ),
                 TextFormField(
-                  controller: _usernameController,
+                  controller: _emailController,
                   textInputAction: TextInputAction.next,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: context.l10n.registerUsernameLabel,
-                    prefixIcon: const Icon(Icons.person_outline_rounded),
+                    labelText: context.l10n.emailLabel,
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   validator: (String? value) {
-                    if ((value?.trim().length ?? 0) < 2) {
-                      return context.l10n.registerUsernameValidationError;
+                    final String v = value?.trim() ?? '';
+                    if (!v.contains('@') || !v.contains('.')) {
+                      return context.l10n.loginEmailValidationError;
                     }
                     return null;
                   },
@@ -93,11 +102,18 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: AppSpacing.md),
                 TextFormField(
                   controller: _passwordController,
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: context.l10n.loginPasswordLabel,
                     prefixIcon: const Icon(Icons.lock_outline_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
                   ),
                   validator: (String? value) {
                     if ((value?.trim().length ?? 0) < 6) {
@@ -109,12 +125,19 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: AppSpacing.md),
                 TextFormField(
                   controller: _confirmPasswordController,
-                  obscureText: true,
+                  obscureText: _obscureConfirmPassword,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
                     labelText: context.l10n.confirmPasswordLabel,
                     prefixIcon: const Icon(Icons.lock_reset_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureConfirmPassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() =>
+                          _obscureConfirmPassword = !_obscureConfirmPassword),
+                    ),
                   ),
                   validator: (String? value) {
                     if ((value?.trim() ?? '') !=

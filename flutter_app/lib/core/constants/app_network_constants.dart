@@ -6,6 +6,7 @@ class AppStorageKeys {
   static const String sessionLoggedIn = 'session.logged_in';
   static const String sessionUsername = 'session.username';
   static const String sessionDisplayName = 'session.display_name';
+  static const String sessionGuestMode = 'session.guest_mode';
 
   static const String appLanguage = 'app.language';
   static const String appCurrency = 'app.currency';
@@ -57,6 +58,7 @@ class AppApiResponseKey {
 
   static const String data = 'data';
   static const String message = 'message';
+  static const String email = 'email';
   static const String username = 'username';
   static const String displayName = 'displayName';
 }
@@ -65,8 +67,7 @@ class AppApiErrorMessage {
   const AppApiErrorMessage._();
 
   static const String timeout = 'Request timeout. Please try again.';
-  static const String connectionError =
-      'Unable to connect to server. Please check your network.';
+  static const String connectionError = 'Unable to connect to server. Please check your network.';
   static const String cancelled = 'Request cancelled.';
   static const String serverError = 'Server error';
   static const String unauthorized = 'Unauthorized request.';
@@ -83,7 +84,7 @@ class AppApiBaseUrl {
 
   static const String web = 'http://localhost:3000';
   static const String androidEmulator = 'http://10.0.2.2:3000';
-  static const String local = 'http://localhost:3000';
+  static const String local = 'http://192.168.1.18:3000';
 
   static String resolve() {
     if (kIsWeb) {

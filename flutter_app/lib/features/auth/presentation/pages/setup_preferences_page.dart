@@ -6,6 +6,8 @@ import '../../../../core/cubit/settings_cubit.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_toast.dart';
+import '../../../../core/cubit/auth_cubit.dart';
+import '../../../expense/presentation/pages/expense_shell_page.dart';
 
 class SetupPreferencesPage extends StatefulWidget {
   const SetupPreferencesPage({super.key});
@@ -54,6 +56,12 @@ class _SetupPreferencesPageState extends State<SetupPreferencesPage> {
       _submitting = false;
     });
     AppToast.success(context.l10n.setupSaved);
+
+    await context.read<AuthCubit>().enterGuestMode();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const ExpenseShellPage()),
+    );
   }
 
   void _onLanguageChanged(AppLanguage language) {

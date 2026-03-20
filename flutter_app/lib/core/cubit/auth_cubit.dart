@@ -9,6 +9,7 @@ import '../network/api_client.dart';
 enum AuthStatus {
   authenticated,
   unauthenticated,
+  guest,
 }
 
 enum AuthErrorCode {
@@ -22,6 +23,7 @@ class AuthState extends Equatable {
     this.displayName,
     this.isSubmitting = false,
     this.errorCode,
+    this.errorMessage,
   });
 
   final AuthStatus status;
@@ -29,6 +31,7 @@ class AuthState extends Equatable {
   final String? displayName;
   final bool isSubmitting;
   final AuthErrorCode? errorCode;
+  final String? errorMessage;
 
   AuthState copyWith({
     AuthStatus? status,
@@ -38,6 +41,7 @@ class AuthState extends Equatable {
     bool clearDisplayName = false,
     bool? isSubmitting,
     Object? errorCode = _sentinel,
+    Object? errorMessage = _sentinel,
   }) {
     return AuthState(
       status: status ?? this.status,
@@ -47,14 +51,23 @@ class AuthState extends Equatable {
       errorCode: identical(errorCode, _sentinel)
           ? this.errorCode
           : errorCode as AuthErrorCode?,
+      errorMessage: identical(errorMessage, _sentinel)
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 
   static const Object _sentinel = Object();
 
   @override
-  List<Object?> get props =>
-      <Object?>[status, username, displayName, isSubmitting, errorCode];
+  List<Object?> get props => <Object?>[
+        status,
+        username,
+        displayName,
+        isSubmitting,
+        errorCode,
+        errorMessage,
+      ];
 }
 
 class AuthCubit extends Cubit<AuthState> {
@@ -70,35 +83,56 @@ class AuthCubit extends Cubit<AuthState> {
     final String? displayName =
         prefs.getString(AppStorageKeys.sessionDisplayName);
 
-    emit(
-      state.copyWith(
-        status:
-            isLoggedIn ? AuthStatus.authenticated : AuthStatus.unauthenticated,
-        username: isLoggedIn ? username : null,
-        displayName: isLoggedIn ? displayName : null,
-        clearUsername: !isLoggedIn,
-        clearDisplayName: !isLoggedIn,
-      ),
-    );
+    if (isLoggedIn) {
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        username: username,
+        displayName: displayName,
+        errorCode: null,
+        errorMessage: null,
+      ));
+    } else {
+      // Not logged in → use app without an account (guest/local mode).
+      emit(state.copyWith(
+        status: AuthStatus.guest,
+        clearUsername: true,
+        clearDisplayName: true,
+        errorCode: null,
+        errorMessage: null,
+      ));
+    }
+  }
+
+  Future<void> enterGuestMode() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppStorageKeys.sessionGuestMode, true);
+    emit(state.copyWith(
+      status: AuthStatus.guest,
+      clearUsername: true,
+      clearDisplayName: true,
+      errorCode: null,
+      errorMessage: null,
+    ));
   }
 
   Future<bool> login({
-    required String username,
+    required String email,
     required String password,
   }) async {
-    final String normalizedUsername = username.trim();
+    final String normalizedEmail = email.trim();
     final String normalizedPassword = password.trim();
-    if (normalizedUsername.isEmpty || normalizedPassword.isEmpty) {
+    if (normalizedEmail.isEmpty || normalizedPassword.isEmpty) {
       return false;
     }
 
-    emit(state.copyWith(isSubmitting: true));
+    emit(state.copyWith(
+        isSubmitting: true, errorCode: null, errorMessage: null));
 
     try {
       final response = await apiClient.post(
         AppApiPath.authLogin,
         data: <String, dynamic>{
-          AppApiResponseKey.username: normalizedUsername,
+          AppApiResponseKey.email: normalizedEmail,
           'password': normalizedPassword,
         },
       );
@@ -106,7 +140,7 @@ class AuthCubit extends Cubit<AuthState> {
           (response.data as Map<String, dynamic>)[AppApiResponseKey.data]
               as Map<String, dynamic>;
       final String responseUsername =
-          (data[AppApiResponseKey.username] as String?)?.trim() ?? '';
+          (data[AppApiResponseKey.email] as String?)?.trim() ?? '';
       final String responseDisplayName =
           (data[AppApiResponseKey.displayName] as String?)?.trim() ?? '';
 
@@ -117,6 +151,7 @@ class AuthCubit extends Cubit<AuthState> {
         AppStorageKeys.sessionDisplayName,
         responseDisplayName,
       );
+      await prefs.remove(AppStorageKeys.sessionGuestMode);
 
       emit(
         state.copyWith(
@@ -125,6 +160,7 @@ class AuthCubit extends Cubit<AuthState> {
           displayName: responseDisplayName,
           isSubmitting: false,
           errorCode: null,
+          errorMessage: null,
         ),
       );
       return true;
@@ -135,6 +171,7 @@ class AuthCubit extends Cubit<AuthState> {
           errorCode: _isConnectionError(error)
               ? AuthErrorCode.loginRequiresInternet
               : null,
+          errorMessage: _resolveErrorMessage(error),
         ),
       );
       return false;
@@ -142,22 +179,22 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<bool> register({
-    required String username,
+    required String email,
     required String password,
   }) async {
-    final String normalizedUsername = username.trim();
+    final String normalizedEmail = email.trim();
     final String normalizedPassword = password.trim();
-    if (normalizedUsername.length < 2 || normalizedPassword.length < 6) {
+    if (normalizedEmail.isEmpty || normalizedPassword.length < 6) {
       return false;
     }
 
-    emit(state.copyWith(isSubmitting: true));
+    emit(state.copyWith(isSubmitting: true, errorMessage: null));
 
     try {
       await apiClient.post(
         AppApiPath.authRegister,
         data: <String, dynamic>{
-          AppApiResponseKey.username: normalizedUsername,
+          AppApiResponseKey.email: normalizedEmail,
           'password': normalizedPassword,
         },
       );
@@ -174,19 +211,26 @@ class AuthCubit extends Cubit<AuthState> {
           clearUsername: true,
           clearDisplayName: true,
           errorCode: null,
+          errorMessage: null,
         ),
       );
       return true;
-    } catch (_) {
-      emit(state.copyWith(isSubmitting: false, errorCode: null));
+    } catch (error) {
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorCode: null,
+          errorMessage: _resolveErrorMessage(error),
+        ),
+      );
       return false;
     }
   }
 
   Future<bool> setDisplayName(String displayName) async {
     final String normalizedDisplayName = displayName.trim();
-    final String username = state.username?.trim() ?? '';
-    if (normalizedDisplayName.length < 2 || username.isEmpty) {
+    final String email = state.username?.trim() ?? '';
+    if (normalizedDisplayName.length < 2 || email.isEmpty) {
       return false;
     }
 
@@ -194,7 +238,7 @@ class AuthCubit extends Cubit<AuthState> {
       final response = await apiClient.put(
         AppApiPath.authProfileDisplayName,
         data: <String, dynamic>{
-          AppApiResponseKey.username: username,
+          AppApiResponseKey.email: email,
           AppApiResponseKey.displayName: normalizedDisplayName,
         },
       );
@@ -224,13 +268,16 @@ class AuthCubit extends Cubit<AuthState> {
     await prefs.remove(AppStorageKeys.sessionUsername);
     await prefs.remove(AppStorageKeys.sessionDisplayName);
 
+    // After logout, return to local/guest mode so the user can keep using
+    // the app without an account.
     emit(
       state.copyWith(
-        status: AuthStatus.unauthenticated,
+        status: AuthStatus.guest,
         isSubmitting: false,
         clearUsername: true,
         clearDisplayName: true,
         errorCode: null,
+        errorMessage: null,
       ),
     );
   }
@@ -248,5 +295,15 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     return error.type == DioExceptionType.unknown && error.response == null;
+  }
+
+  String? _resolveErrorMessage(Object error) {
+    if (error is DioException) {
+      final String message = (error.message ?? '').trim();
+      if (message.isNotEmpty) {
+        return message;
+      }
+    }
+    return null;
   }
 }

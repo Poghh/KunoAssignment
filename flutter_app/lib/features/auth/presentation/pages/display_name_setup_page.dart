@@ -7,6 +7,7 @@ import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/widgets/app_loading_filled_button.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/auth_card_layout.dart';
+import '../../../expense/presentation/pages/expense_shell_page.dart';
 import '../widgets/auth_form_header.dart';
 
 class DisplayNameSetupPage extends StatefulWidget {
@@ -24,7 +25,11 @@ class _DisplayNameSetupPageState extends State<DisplayNameSetupPage> {
   @override
   void initState() {
     super.initState();
-    final String fallbackName = context.read<AuthCubit>().state.username ?? '';
+    final AuthState authState = context.read<AuthCubit>().state;
+    final String fallbackName =
+        authState.displayName?.trim().isNotEmpty == true
+            ? authState.displayName!.trim()
+            : (authState.username?.trim() ?? '');
     _displayNameController = TextEditingController(text: fallbackName);
   }
 
@@ -55,6 +60,9 @@ class _DisplayNameSetupPageState extends State<DisplayNameSetupPage> {
     });
     if (success) {
       AppToast.success(context.l10n.displayNameSaved);
+      Navigator.of(context, rootNavigator: true).pushReplacement(
+        MaterialPageRoute<void>(builder: (_) => const ExpenseShellPage()),
+      );
     } else {
       AppToast.error(context.l10n.requestFailed);
     }
