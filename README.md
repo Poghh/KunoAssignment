@@ -10,7 +10,7 @@ A full-stack expense tracker demo built for technical interviews.
 
 ### Video Demo
 
-[![Demo Video](https://img.youtube.com/vi/udnhg-69mQ4/maxresdefault.jpg)](https://www.youtube.com/watch?v=udnhg-69mQ4)
+[▶ Watch Demo Video](https://mega.nz/file/m9hFiAjA#Et03GyRFpeZDW6UZCdV62okbvMjvrXugYbeR4OXh194)
 
 ### Screenshots
 
