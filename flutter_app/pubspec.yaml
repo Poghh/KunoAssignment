@@ -20,6 +20,7 @@ dependencies:
   persistent_bottom_nav_bar_v2: ^6.3.1
   fluttertoast: ^8.2.12
   shared_preferences: ^2.5.3
+  connectivity_plus: ^6.1.4
 
 dev_dependencies:
   flutter_test:
