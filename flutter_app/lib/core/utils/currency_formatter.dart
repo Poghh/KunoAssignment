@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../services/exchange_rate_service.dart';
+import '../../features/expense/domain/entities/expense.dart';
 
 class CurrencyFormatter {
   CurrencyFormatter._();
@@ -83,6 +84,15 @@ class CurrencyFormatter {
       default:
         return baseValue.toDouble();
     }
+  }
+
+  /// Returns the expense amount already in the active display currency.
+  /// - Same currency as display → use exact [Expense.displayAmount] (no precision loss).
+  /// - Different currency → convert [Expense.amount] (USD base) to display currency.
+  static double effectiveAmount(Expense expense) {
+    final bool same =
+        expense.currencyCode.toUpperCase() == _currencyCode.toUpperCase();
+    return same ? expense.displayAmount : convertFromBase(expense.amount);
   }
 
   static double convertToBase(num value, {required String sourceCurrencyCode}) {

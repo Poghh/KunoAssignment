@@ -38,14 +38,14 @@ class UserMonthSummaryCard extends StatelessWidget {
               Expanded(
                 child: _SummaryItem(
                   label: context.l10n.summaryTotalThisMonth,
-                  value: CurrencyFormatter.format(totalThisMonth),
+                  value: CurrencyFormatter.formatValue(totalThisMonth),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: _SummaryItem(
                   label: context.l10n.summaryAvgDaily,
-                  value: CurrencyFormatter.format(dailyAverage),
+                  value: CurrencyFormatter.formatValue(dailyAverage),
                 ),
               ),
             ],

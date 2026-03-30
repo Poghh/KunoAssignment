@@ -6,6 +6,7 @@ import 'core/cubit/auth_cubit.dart';
 import 'core/cubit/settings_cubit.dart';
 import 'core/di/injection.dart';
 import 'core/network/api_client.dart';
+import 'features/expense/data/datasources/expense_local_data_source.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/currency_formatter.dart';
 import 'features/auth/presentation/pages/splash_page.dart';
@@ -19,7 +20,10 @@ Future<void> main() async {
   await configureDependencies();
   final SettingsCubit settingsCubit = SettingsCubit();
   await settingsCubit.loadSettings();
-  final AuthCubit authCubit = AuthCubit(apiClient: getIt<ApiClient>());
+  final AuthCubit authCubit = AuthCubit(
+    apiClient: getIt<ApiClient>(),
+    localDataSource: getIt<ExpenseLocalDataSource>(),
+  );
   await authCubit.loadSession();
   runApp(
     ExpenseTrackerApp(

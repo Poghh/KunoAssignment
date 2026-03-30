@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_ui_constants.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/extensions/error_localization_extension.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -68,7 +69,6 @@ class DashboardPage extends StatelessWidget {
           );
         }
 
-        final double monthTotal = state.insights?.monthly.totalThisMonth ?? 0;
         final String locale = Localizations.localeOf(context).toString();
         final String monthLabel = DateFormat(
           AppDateFormat.monthYear,
@@ -78,12 +78,17 @@ class DashboardPage extends StatelessWidget {
         final DateTime now = DateTime.now();
         final DateTime monthStart = DateTime(now.year, now.month, 1);
         final DateTime monthEnd = DateTime(now.year, now.month + 1, 1);
-        final double monthIncome = state.allExpenses
+        final List<Expense> thisMonthExpenses = state.allExpenses
             .where((Expense e) =>
-                e.amount < 0 &&
-                !e.date.isBefore(monthStart) &&
-                e.date.isBefore(monthEnd))
-            .fold(0.0, (double sum, Expense e) => sum + e.amount.abs());
+                !e.date.isBefore(monthStart) && e.date.isBefore(monthEnd))
+            .toList(growable: false);
+        final double monthTotal = thisMonthExpenses
+            .where((Expense e) => e.amount >= 0)
+            .fold(0.0, (double sum, Expense e) => sum + CurrencyFormatter.effectiveAmount(e));
+        final double monthIncome = thisMonthExpenses
+            .where((Expense e) => e.amount < 0)
+            .fold(0.0, (double sum, Expense e) => sum + CurrencyFormatter.effectiveAmount(e).abs());
+        final double dailyAverage = now.day > 0 ? monthTotal / now.day : 0;
 
         return RefreshIndicator(
           onRefresh: () =>
@@ -121,7 +126,10 @@ class DashboardPage extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               if (state.insights != null)
-                InsightCard(insights: state.insights!),
+                InsightCard(
+                  insights: state.insights!,
+                  dailyAverage: dailyAverage,
+                ),
               const SizedBox(height: AppSpacing.lg),
               _sectionHeader(
                 context,

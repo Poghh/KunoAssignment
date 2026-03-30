@@ -50,8 +50,8 @@ class CalendarSelectedDayCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             context.l10n.selectedDaySummary(
-              CurrencyFormatter.format(totalExpense),
-              CurrencyFormatter.format(totalIncome),
+              CurrencyFormatter.formatValue(totalExpense),
+              CurrencyFormatter.formatValue(totalIncome),
             ),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,

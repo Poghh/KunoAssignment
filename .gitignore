@@ -20,3 +20,11 @@ flutter_app/.fvm/
 
 # Demo artifacts
 docs/demo/
+
+# Local notes / study files
+.notes.md
+STUDY_GUIDE.docx
+STUDY_GUIDE.md
+
+# Local editor settings
+flutter_app/.vscode/

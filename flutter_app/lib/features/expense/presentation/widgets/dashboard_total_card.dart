@@ -68,7 +68,7 @@ class DashboardTotalCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            CurrencyFormatter.format(total),
+            CurrencyFormatter.formatValue(total),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
@@ -121,7 +121,7 @@ class DashboardTotalCard extends StatelessWidget {
                       const SizedBox(width: AppSpacing.sm - AppSpacing.xxs),
                       Flexible(
                         child: Text(
-                          '${context.l10n.incomeLabel}: ${CurrencyFormatter.format(income)}',
+                          '${context.l10n.incomeLabel}: ${CurrencyFormatter.formatValue(income)}',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: const TextStyle(

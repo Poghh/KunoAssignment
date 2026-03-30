@@ -235,7 +235,7 @@ class _DayAmount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      '$prefix${CurrencyFormatter.formatCompact(amount)}',
+      '$prefix${CurrencyFormatter.formatCompactValue(amount)}',
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(

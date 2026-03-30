@@ -9,9 +9,14 @@ import '../../../../core/widgets/app_surface_card.dart';
 import '../../domain/entities/insight.dart';
 
 class InsightCard extends StatelessWidget {
-  const InsightCard({required this.insights, super.key});
+  const InsightCard({
+    required this.insights,
+    required this.dailyAverage,
+    super.key,
+  });
 
   final DashboardInsights insights;
+  final double dailyAverage;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +85,7 @@ class InsightCard extends StatelessWidget {
           _InsightRow(
             icon: Icons.show_chart_rounded,
             text: context.l10n.avgDailySpendText(
-              CurrencyFormatter.format(insights.dailyAverage.dailyAverage),
+              CurrencyFormatter.formatValue(dailyAverage),
             ),
             accent: AppTheme.primary,
           ),
