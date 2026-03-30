@@ -6,13 +6,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:expense_tracker_app/core/cubit/auth_cubit.dart';
 import 'package:expense_tracker_app/core/network/api_client.dart';
+import 'package:expense_tracker_app/features/expense/data/datasources/expense_local_data_source.dart';
 
 class MockApiClient extends Mock implements ApiClient {}
+class MockExpenseLocalDataSource extends Mock
+    implements ExpenseLocalDataSource {}
 
 class FakeRequestOptions extends Fake implements RequestOptions {}
 
 void main() {
   late MockApiClient mockApiClient;
+  late MockExpenseLocalDataSource mockLocalDataSource;
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,9 +26,15 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     mockApiClient = MockApiClient();
+    mockLocalDataSource = MockExpenseLocalDataSource();
+    when(() => mockLocalDataSource.clearLocalCache())
+        .thenAnswer((_) async {});
   });
 
-  AuthCubit buildCubit() => AuthCubit(apiClient: mockApiClient);
+  AuthCubit buildCubit() => AuthCubit(
+        apiClient: mockApiClient,
+        localDataSource: mockLocalDataSource,
+      );
 
   // Helper to build a fake successful login response
   Response<dynamic> loginResponse({
@@ -217,7 +227,7 @@ void main() {
 
     group('logout', () {
       blocTest<AuthCubit, AuthState>(
-        'emits unauthenticated with cleared user data',
+        'emits guest mode with cleared user data',
         setUp: () {
           when(() => mockApiClient.post(
                 any(),
@@ -230,9 +240,10 @@ void main() {
           await cubit.logout();
         },
         verify: (cubit) {
-          expect(cubit.state.status, AuthStatus.unauthenticated);
+          expect(cubit.state.status, AuthStatus.guest);
           expect(cubit.state.username, isNull);
           expect(cubit.state.displayName, isNull);
+          verify(() => mockLocalDataSource.clearLocalCache()).called(2);
         },
       );
     });
