@@ -2,19 +2,46 @@ import '../../domain/entities/insight.dart';
 
 class MonthlyInsightModel extends MonthlyInsight {
   const MonthlyInsightModel({
-    required super.month,
+    required super.monthDate,
     required super.totalThisMonth,
     required super.totalLastMonth,
     required super.percentageChange,
   });
 
   factory MonthlyInsightModel.fromJson(Map<String, dynamic> json) {
+    // API returns "MMMM yyyy" (e.g. "March 2026") — parse to DateTime so the
+    // UI can format it in the correct locale.
+    final String monthStr = json['month'] as String? ?? '';
+    DateTime monthDate;
+    try {
+      monthDate = _parseMonthYear(monthStr);
+    } catch (_) {
+      monthDate = DateTime(DateTime.now().year, DateTime.now().month);
+    }
+
     return MonthlyInsightModel(
-      month: json['month'] as String,
+      monthDate: monthDate,
       totalThisMonth: (json['totalThisMonth'] as num).toDouble(),
       totalLastMonth: (json['totalLastMonth'] as num).toDouble(),
       percentageChange: (json['percentageChange'] as num).toDouble(),
     );
+  }
+
+  /// Parses "MMMM yyyy" (e.g. "March 2026") returned by the server.
+  static DateTime _parseMonthYear(String value) {
+    final List<String> parts = value.trim().split(' ');
+    if (parts.length != 2) throw const FormatException('Unexpected format');
+
+    const Map<String, int> months = <String, int>{
+      'january': 1, 'february': 2, 'march': 3, 'april': 4,
+      'may': 5, 'june': 6, 'july': 7, 'august': 8,
+      'september': 9, 'october': 10, 'november': 11, 'december': 12,
+    };
+
+    final int? month = months[parts[0].toLowerCase()];
+    final int? year = int.tryParse(parts[1]);
+    if (month == null || year == null) throw const FormatException('Unknown month');
+    return DateTime(year, month);
   }
 }
 

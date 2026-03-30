@@ -2,20 +2,20 @@ import 'package:equatable/equatable.dart';
 
 class MonthlyInsight extends Equatable {
   const MonthlyInsight({
-    required this.month,
+    required this.monthDate,
     required this.totalThisMonth,
     required this.totalLastMonth,
     required this.percentageChange,
   });
 
-  final String month;
+  final DateTime monthDate;
   final double totalThisMonth;
   final double totalLastMonth;
   final double percentageChange;
 
   @override
   List<Object?> get props => <Object?>[
-        month,
+        monthDate,
         totalThisMonth,
         totalLastMonth,
         percentageChange,

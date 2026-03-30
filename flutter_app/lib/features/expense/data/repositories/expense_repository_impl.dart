@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 
@@ -17,13 +18,33 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   ExpenseRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
-  });
+    required bool Function() isGuestMode,
+  }) : _isGuestMode = isGuestMode {
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      final bool isOnline = results.any(
+        (ConnectivityResult r) => r != ConnectivityResult.none,
+      );
+      if (isOnline && !_isGuestMode()) {
+        _triggerBackgroundSyncAndRefresh();
+      }
+    });
+  }
 
   final ExpenseRemoteDataSource remoteDataSource;
   final ExpenseLocalDataSource localDataSource;
+  final bool Function() _isGuestMode;
+
+  late final StreamSubscription<List<ConnectivityResult>>
+      _connectivitySubscription;
 
   Future<void>? _syncInFlight;
   Future<void>? _refreshInFlight;
+
+  void dispose() {
+    _connectivitySubscription.cancel();
+  }
 
   @override
   Future<List<Expense>> getExpenses({
@@ -35,7 +56,18 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         await localDataSource.getCachedExpenses();
 
     if (cachedExpenses.isNotEmpty) {
-      _triggerBackgroundSyncAndRefresh();
+      if (!_isGuestMode()) {
+        _triggerBackgroundSyncAndRefresh();
+      }
+      return _filterExpenses(
+        cachedExpenses,
+        categoryId: categoryId,
+        startDate: startDate,
+        endDate: endDate,
+      );
+    }
+
+    if (_isGuestMode()) {
       return _filterExpenses(
         cachedExpenses,
         categoryId: categoryId,
@@ -69,7 +101,9 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   Future<Expense> createExpense(ExpenseDraft draft) async {
     final ExpenseModel localExpense =
         await localDataSource.createExpenseLocally(draft);
-    _triggerBackgroundSyncAndRefresh();
+    if (!_isGuestMode()) {
+      _triggerBackgroundSyncAndRefresh();
+    }
     return localExpense;
   }
 
@@ -83,14 +117,18 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       expenseId: expenseId,
       draft: draft,
     );
-    _triggerBackgroundSyncAndRefresh();
+    if (!_isGuestMode()) {
+      _triggerBackgroundSyncAndRefresh();
+    }
     return localExpense;
   }
 
   @override
   Future<void> deleteExpense(String expenseId) async {
     await localDataSource.deleteExpenseLocally(expenseId);
-    _triggerBackgroundSyncAndRefresh();
+    if (!_isGuestMode()) {
+      _triggerBackgroundSyncAndRefresh();
+    }
   }
 
   @override
@@ -106,8 +144,16 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     );
 
     if (cachedCategories.isNotEmpty && hasServerCategories) {
-      _triggerBackgroundSyncAndRefresh();
+      if (!_isGuestMode()) {
+        _triggerBackgroundSyncAndRefresh();
+      }
       return _sortedCategories(cachedCategories);
+    }
+
+    // Guest mode: never hit the server — just seed offline defaults and return.
+    if (_isGuestMode()) {
+      await localDataSource.seedOfflineDefaultCategories();
+      return _sortedCategories(await localDataSource.getCachedCategories());
     }
 
     // Either cache is empty or contains only offline-defaults: try server.
@@ -169,14 +215,18 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       icon: icon,
       color: color,
     );
-    _triggerBackgroundSyncAndRefresh();
+    if (!_isGuestMode()) {
+      _triggerBackgroundSyncAndRefresh();
+    }
     return localCategory;
   }
 
   @override
   Future<void> deleteCategory(String categoryId) async {
     await localDataSource.deleteCategoryLocally(categoryId);
-    _triggerBackgroundSyncAndRefresh();
+    if (!_isGuestMode()) {
+      _triggerBackgroundSyncAndRefresh();
+    }
   }
 
   @override
@@ -208,7 +258,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     }
 
     return MonthlyInsight(
-      month: DateFormat('MMMM yyyy', 'en_US').format(thisMonth.start),
+      monthDate: thisMonth.start,
       totalThisMonth: totalThisMonth,
       totalLastMonth: totalLastMonth,
       percentageChange: percentageChange,
@@ -234,7 +284,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     final Map<String, double> grouped = <String, double>{};
     for (final ExpenseModel expense in thisMonthExpenses) {
       grouped[expense.categoryId] =
-          (grouped[expense.categoryId] ?? 0) + expense.displayAmount;
+          (grouped[expense.categoryId] ?? 0) + expense.amount;
     }
 
     String? topCategoryId;
@@ -305,7 +355,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     final Map<String, double> groupedByDay = <String, double>{};
     for (final ExpenseModel expense in thisMonthExpenses) {
       final String day = _dateKey(expense.date);
-      groupedByDay[day] = (groupedByDay[day] ?? 0) + expense.displayAmount;
+      groupedByDay[day] = (groupedByDay[day] ?? 0) + expense.amount;
     }
 
     String? topDay;
@@ -340,17 +390,19 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     List<CategoryModel> categories =
         await localDataSource.getCachedCategories();
 
-    if (expenses.isEmpty && categories.isEmpty) {
-      try {
-        await _synchronizePendingOperations();
-        await _refreshRemoteCache();
-        expenses = await localDataSource.getCachedExpenses();
-        categories = await localDataSource.getCachedCategories();
-      } catch (_) {
-        // Keep current local state.
+    if (!_isGuestMode()) {
+      if (expenses.isEmpty && categories.isEmpty) {
+        try {
+          await _synchronizePendingOperations();
+          await _refreshRemoteCache();
+          expenses = await localDataSource.getCachedExpenses();
+          categories = await localDataSource.getCachedCategories();
+        } catch (_) {
+          // Keep current local state.
+        }
+      } else {
+        _triggerBackgroundSyncAndRefresh();
       }
-    } else {
-      _triggerBackgroundSyncAndRefresh();
     }
 
     return _InsightSource(
@@ -815,9 +867,9 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   double _sumAmounts(List<ExpenseModel> source) {
     double total = 0;
     for (final ExpenseModel expense in source) {
-      total += expense.displayAmount;
+      total += expense.amount;
     }
-    return _round2(total);
+    return total;
   }
 
   String _dateKey(DateTime date) {
