@@ -82,15 +82,10 @@ class AppApiErrorMessage {
 class AppApiBaseUrl {
   const AppApiBaseUrl._();
 
-  static const String web = 'http://localhost:3000';
   static const String androidEmulator = 'http://10.0.2.2:3000';
-  static const String local = 'http://192.168.1.18:3000';
+  static const String local = 'http://192.168.1.13:3000';
 
   static String resolve() {
-    if (kIsWeb) {
-      return web;
-    }
-
     if (defaultTargetPlatform == TargetPlatform.android) {
       return androidEmulator;
     }

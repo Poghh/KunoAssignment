@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import '../services/exchange_rate_service.dart';
+
 class CurrencyFormatter {
   CurrencyFormatter._();
 
@@ -9,7 +11,7 @@ class CurrencyFormatter {
   static final Map<String, NumberFormat> _compactCache =
       <String, NumberFormat>{};
 
-  static const double _usdToVnd = 25500;
+  static String get currencyCode => _currencyCode;
 
   static void configure({
     required String localeCode,
@@ -75,7 +77,8 @@ class CurrencyFormatter {
     final String target = (targetCurrencyCode ?? _currencyCode).toUpperCase();
     switch (target) {
       case 'VND':
-        return baseValue * _usdToVnd;
+        final double raw = baseValue * ExchangeRateService.currentUsdToVnd;
+        return _roundVnd(raw);
       case 'USD':
       default:
         return baseValue.toDouble();
@@ -86,11 +89,16 @@ class CurrencyFormatter {
     final String source = sourceCurrencyCode.toUpperCase();
     switch (source) {
       case 'VND':
-        return value / _usdToVnd;
+        return value / ExchangeRateService.currentUsdToVnd;
       case 'USD':
       default:
         return value.toDouble();
     }
+  }
+
+  /// Rounds VND to the nearest 1,000 — no small change in Vietnamese dong.
+  static double _roundVnd(double value) {
+    return (value / 1000).round() * 1000.0;
   }
 
   static NumberFormat _resolveFormatter(

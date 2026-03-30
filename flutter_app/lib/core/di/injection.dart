@@ -16,12 +16,15 @@ import '../../features/expense/presentation/cubit/category_management_cubit.dart
 import '../../features/expense/presentation/cubit/dashboard_cubit.dart';
 import '../../features/expense/presentation/cubit/expense_form_cubit.dart';
 import '../../features/expense/presentation/cubit/expense_list_cubit.dart';
+import '../constants/app_network_constants.dart';
 import '../network/api_client.dart';
+import '../services/exchange_rate_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
 Future<void> configureDependencies() async {
   final SharedPreferences preferences = await SharedPreferences.getInstance();
+  await ExchangeRateService.initialize(preferences);
   getIt.registerLazySingleton<ApiClient>(createApiClient);
   getIt.registerLazySingleton<ExpenseLocalDataSource>(
     () => ExpenseLocalDataSourceImpl(preferences: preferences),
@@ -33,6 +36,8 @@ Future<void> configureDependencies() async {
     () => ExpenseRepositoryImpl(
       remoteDataSource: getIt<ExpenseRemoteDataSource>(),
       localDataSource: getIt<ExpenseLocalDataSource>(),
+      isGuestMode: () =>
+          preferences.getBool(AppStorageKeys.sessionGuestMode) ?? false,
     ),
   );
   getIt.registerLazySingleton<GetExpensesUseCase>(
