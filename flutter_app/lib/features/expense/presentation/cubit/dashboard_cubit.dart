@@ -21,6 +21,10 @@ class DashboardCubit extends Cubit<DashboardState> {
   final EnsureDefaultCategoriesUseCase ensureDefaultCategoriesUseCase;
   final GetDashboardInsightsUseCase getDashboardInsightsUseCase;
 
+  void reset() {
+    emit(const DashboardState());
+  }
+
   Future<void> loadDashboard({bool showLoading = true}) async {
     if (showLoading) {
       emit(

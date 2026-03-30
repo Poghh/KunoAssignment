@@ -37,7 +37,7 @@ Future<void> configureDependencies() async {
       remoteDataSource: getIt<ExpenseRemoteDataSource>(),
       localDataSource: getIt<ExpenseLocalDataSource>(),
       isGuestMode: () =>
-          preferences.getBool(AppStorageKeys.sessionGuestMode) ?? false,
+          !(preferences.getBool(AppStorageKeys.sessionLoggedIn) ?? false),
     ),
   );
   getIt.registerLazySingleton<GetExpensesUseCase>(

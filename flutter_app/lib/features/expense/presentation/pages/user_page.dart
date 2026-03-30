@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_ui_constants.dart';
 import '../../../../core/cubit/auth_cubit.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/cubit/settings_cubit.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/pages/login_page.dart';
@@ -134,8 +135,7 @@ class _UserPageState extends State<UserPage> {
                 onPressed: _handleLoginToSync,
                 icon: const Icon(Icons.sync_rounded),
                 style: FilledButton.styleFrom(
-                  minimumSize:
-                      const Size.fromHeight(_logoutButtonHeight),
+                  minimumSize: const Size.fromHeight(_logoutButtonHeight),
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                 ),
@@ -146,8 +146,7 @@ class _UserPageState extends State<UserPage> {
                 onPressed: _handleLogout,
                 icon: const Icon(Icons.logout_rounded),
                 style: FilledButton.styleFrom(
-                  minimumSize:
-                      const Size.fromHeight(_logoutButtonHeight),
+                  minimumSize: const Size.fromHeight(_logoutButtonHeight),
                 ),
                 label: Text(context.l10n.logoutButton),
               ),
@@ -159,9 +158,7 @@ class _UserPageState extends State<UserPage> {
                   child: Text(
                     context.l10n.syncingData,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                   ),
                 ),
@@ -177,12 +174,11 @@ class _UserPageState extends State<UserPage> {
     SettingsState settings,
   ) {
     final DateTime now = DateTime.now();
-    final String monthLabel = DateFormat(AppDateFormat.monthYear, settings.localeCode)
-        .format(state.insights?.monthly.monthDate ?? now);
-    final double totalThisMonth =
-        state.insights?.monthly.totalThisMonth ?? _fallbackMonthExpense(state);
-    final double dailyAverage =
-        state.insights?.dailyAverage.dailyAverage ?? _fallbackDailyAverage(state);
+    final String monthLabel =
+        DateFormat(AppDateFormat.monthYear, settings.localeCode)
+            .format(state.insights?.monthly.monthDate ?? now);
+    final double totalThisMonth = _computeMonthExpense(state);
+    final double dailyAverage = _computeDailyAverage(state);
     return _MonthSummary(
       monthLabel: monthLabel,
       totalThisMonth: totalThisMonth,
@@ -190,21 +186,21 @@ class _UserPageState extends State<UserPage> {
     );
   }
 
-  double _fallbackMonthExpense(DashboardState state) {
+  double _computeMonthExpense(DashboardState state) {
     final DateTime now = DateTime.now();
     double total = 0;
     for (final Expense expense in state.allExpenses) {
       if (expense.date.year == now.year &&
           expense.date.month == now.month &&
           expense.amount > 0) {
-        total += expense.amount;
+        total += CurrencyFormatter.effectiveAmount(expense);
       }
     }
     return total;
   }
 
-  double _fallbackDailyAverage(DashboardState state) =>
-      _fallbackMonthExpense(state) / DateTime.now().day.clamp(1, 31);
+  double _computeDailyAverage(DashboardState state) =>
+      _computeMonthExpense(state) / DateTime.now().day.clamp(1, 31);
 
   Future<void> _showEditProfileSheet({
     required String currentUsername,
@@ -248,6 +244,8 @@ class _UserPageState extends State<UserPage> {
   Future<void> _handleLoginToSync() async {
     await context.read<AuthCubit>().logout();
     if (!mounted) return;
+    context.read<DashboardCubit>().reset();
+    context.read<ExpenseListCubit>().reset();
     Navigator.of(context, rootNavigator: true).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => const LoginPage()),
     );
@@ -274,6 +272,12 @@ class _UserPageState extends State<UserPage> {
     if (confirmed != true || !mounted) return;
     await context.read<AuthCubit>().logout();
     if (!mounted) return;
+    final DashboardCubit dashboardCubit = context.read<DashboardCubit>();
+    final ExpenseListCubit expenseListCubit = context.read<ExpenseListCubit>();
+    dashboardCubit.reset();
+    expenseListCubit.reset();
+    dashboardCubit.loadDashboard(showLoading: false);
+    expenseListCubit.loadExpenses(showLoading: false);
     AppToast.info(context.l10n.logoutSuccess);
   }
 }

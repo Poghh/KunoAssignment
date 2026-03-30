@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_ui_constants.dart';
+import '../../../../core/cubit/settings_cubit.dart';
 import '../../../../core/extensions/error_localization_extension.dart';
 import '../../../../core/extensions/l10n_extension.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -37,6 +38,11 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Rebuild calendar totals immediately when display currency changes.
+    context.select<SettingsCubit, AppCurrency>(
+      (SettingsCubit cubit) => cubit.state.currency,
+    );
+
     return BlocBuilder<ExpenseListCubit, ExpenseListState>(
       builder: (BuildContext context, ExpenseListState state) {
         if (state.status == ExpenseListStatus.loading &&
@@ -124,8 +130,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   void _changeMonth(int delta) {
     setState(() {
-      _focusedMonth =
-          DateTime(_focusedMonth.year, _focusedMonth.month + delta);
+      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + delta);
       _selectedDate = DateTime(_focusedMonth.year, _focusedMonth.month, 1);
     });
   }
@@ -135,13 +140,12 @@ class _CalendarPageState extends State<CalendarPage> {
     for (final Expense expense in expenses) {
       final String key =
           CalendarGrid.dayKey(CalendarGrid.dateOnly(expense.date));
-      final _DaySummary summary =
-          grouped.putIfAbsent(key, () => _DaySummary());
+      final _DaySummary summary = grouped.putIfAbsent(key, () => _DaySummary());
       summary.transactions.add(expense);
       if (expense.amount >= 0) {
-        summary.totalExpense += expense.amount;
+        summary.totalExpense += CurrencyFormatter.effectiveAmount(expense);
       } else {
-        summary.totalIncome += expense.amount.abs();
+        summary.totalIncome += CurrencyFormatter.effectiveAmount(expense).abs();
       }
     }
     return grouped;
@@ -159,14 +163,13 @@ class _CalendarPageState extends State<CalendarPage> {
         continue;
       }
       if (expense.amount >= 0) {
-        totalExpense += expense.amount;
+        totalExpense += CurrencyFormatter.effectiveAmount(expense);
       } else {
-        totalIncome += expense.amount.abs();
+        totalIncome += CurrencyFormatter.effectiveAmount(expense).abs();
       }
     }
     return _MonthSummary(totalExpense: totalExpense, totalIncome: totalIncome);
   }
-
 }
 
 // ── Data models ───────────────────────────────────────────────────────────────
@@ -297,23 +300,25 @@ class _CalendarMonthlySummary extends StatelessWidget {
           Expanded(
             child: _SummaryItem(
               title: context.l10n.expenseLabel,
-              value: CurrencyFormatter.format(summary.totalExpense),
+              value: CurrencyFormatter.formatValue(summary.totalExpense),
               color: AppTheme.expenseRed,
             ),
           ),
-          Container(width: 1, height: _kDividerHeight, color: colorScheme.outline),
+          Container(
+              width: 1, height: _kDividerHeight, color: colorScheme.outline),
           Expanded(
             child: _SummaryItem(
               title: context.l10n.incomeLabel,
-              value: CurrencyFormatter.format(summary.totalIncome),
+              value: CurrencyFormatter.formatValue(summary.totalIncome),
               color: AppTheme.positiveGreen,
             ),
           ),
-          Container(width: 1, height: _kDividerHeight, color: colorScheme.outline),
+          Container(
+              width: 1, height: _kDividerHeight, color: colorScheme.outline),
           Expanded(
             child: _SummaryItem(
               title: context.l10n.netLabel,
-              value: CurrencyFormatter.format(summary.net),
+              value: CurrencyFormatter.formatValue(summary.net),
               color: summary.net >= 0
                   ? AppTheme.positiveGreen
                   : AppTheme.expenseRed,

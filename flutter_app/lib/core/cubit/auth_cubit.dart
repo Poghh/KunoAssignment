@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_network_constants.dart';
 import '../network/api_client.dart';
+import '../../features/expense/data/datasources/expense_local_data_source.dart';
 
 enum AuthStatus {
   authenticated,
@@ -71,9 +72,13 @@ class AuthState extends Equatable {
 }
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit({required this.apiClient}) : super(const AuthState());
+  AuthCubit({
+    required this.apiClient,
+    required this.localDataSource,
+  }) : super(const AuthState());
 
   final ApiClient apiClient;
+  final ExpenseLocalDataSource localDataSource;
 
   Future<void> loadSession() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -84,6 +89,7 @@ class AuthCubit extends Cubit<AuthState> {
         prefs.getString(AppStorageKeys.sessionDisplayName);
 
     if (isLoggedIn) {
+      await prefs.remove(AppStorageKeys.sessionGuestMode);
       emit(state.copyWith(
         status: AuthStatus.authenticated,
         username: username,
@@ -92,6 +98,7 @@ class AuthCubit extends Cubit<AuthState> {
         errorMessage: null,
       ));
     } else {
+      await prefs.setBool(AppStorageKeys.sessionGuestMode, true);
       // Not logged in → use app without an account (guest/local mode).
       emit(state.copyWith(
         status: AuthStatus.guest,
@@ -264,9 +271,15 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> logout() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    // Clear the authenticated user's cache while username is still available
+    // for namespace resolution.
+    await localDataSource.clearLocalCache();
     await prefs.setBool(AppStorageKeys.sessionLoggedIn, false);
+    await prefs.setBool(AppStorageKeys.sessionGuestMode, true);
     await prefs.remove(AppStorageKeys.sessionUsername);
     await prefs.remove(AppStorageKeys.sessionDisplayName);
+    // Also clear guest namespace to avoid leaking stale data into guest mode.
+    await localDataSource.clearLocalCache();
 
     // After logout, return to local/guest mode so the user can keep using
     // the app without an account.

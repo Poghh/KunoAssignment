@@ -21,6 +21,10 @@ class ExpenseListCubit extends Cubit<ExpenseListState> {
   final EnsureDefaultCategoriesUseCase ensureDefaultCategoriesUseCase;
   final DeleteExpenseUseCase deleteExpenseUseCase;
 
+  void reset() {
+    emit(const ExpenseListState());
+  }
+
   Future<void> loadExpenses({bool showLoading = true}) async {
     if (showLoading) {
       emit(
