@@ -578,7 +578,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get somethingWentWrongTryAgain => 'Có lỗi xảy ra. Vui lòng thử lại.';
 
   @override
-  String get continueOfflineButton => 'Dùng offline';
+  String get continueOfflineButton => 'Dùng với chế độ khách';
 
   @override
   String get guestModeBanner => 'Bạn chưa đăng nhập. Dữ liệu được lưu trên thiết bị này.';
@@ -587,5 +587,5 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loginToSyncButton => 'Đăng nhập để đồng bộ';
 
   @override
-  String get exitGuestModeButton => 'Thoát chế độ offline';
+  String get exitGuestModeButton => 'Thoát chế độ khách';
 }

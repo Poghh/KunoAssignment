@@ -578,7 +578,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get somethingWentWrongTryAgain => 'Something went wrong. Please try again.';
 
   @override
-  String get continueOfflineButton => 'Continue offline';
+  String get continueOfflineButton => 'Use as Guest';
 
   @override
   String get guestModeBanner => 'You\'re not signed in. Data is saved locally on this device.';
@@ -587,5 +587,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginToSyncButton => 'Sign in to Sync';
 
   @override
-  String get exitGuestModeButton => 'Exit offline mode';
+  String get exitGuestModeButton => 'Exit Guest Mode';
 }
