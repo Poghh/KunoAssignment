@@ -43,8 +43,8 @@ class InsightCard extends StatelessWidget {
           Row(
             children: <Widget>[
               Container(
-                width: 34,
-                height: 34,
+                width: AppContainerSize.iconSm,
+                height: AppContainerSize.iconSm,
                 decoration: BoxDecoration(
                   color: AppTheme.primary.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -52,7 +52,7 @@ class InsightCard extends StatelessWidget {
                 child: const Icon(
                   Icons.auto_awesome_rounded,
                   color: AppTheme.primary,
-                  size: 18,
+                  size: AppIconSize.sm,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm + AppSpacing.xxs),
@@ -80,7 +80,7 @@ class InsightCard extends StatelessWidget {
           _InsightRow(
             icon: Icons.show_chart_rounded,
             text: context.l10n.avgDailySpendText(
-              CurrencyFormatter.formatValue(insights.dailyAverage.dailyAverage),
+              CurrencyFormatter.format(insights.dailyAverage.dailyAverage),
             ),
             accent: AppTheme.primary,
           ),
@@ -135,7 +135,7 @@ class _InsightRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        Icon(icon, size: 18, color: accent),
+        Icon(icon, size: AppIconSize.sm, color: accent),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(

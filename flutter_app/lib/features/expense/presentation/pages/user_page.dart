@@ -9,15 +9,18 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/extensions/l10n_extension.dart';
-import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/widgets/app_bottom_sheet_handle.dart';
 import '../../../../core/widgets/app_section_header.dart';
-import '../../../../core/widgets/app_surface_card.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../domain/entities/expense.dart';
 import '../cubit/category_management_cubit.dart';
 import '../cubit/dashboard_cubit.dart';
 import '../cubit/dashboard_state.dart';
 import '../cubit/expense_list_cubit.dart';
+import '../widgets/user_category_card.dart';
+import '../widgets/user_month_summary_card.dart';
+import '../widgets/user_profile_card.dart';
+import '../widgets/user_settings_card.dart';
 import 'category_management_page.dart';
 
 class UserPage extends StatefulWidget {
@@ -28,9 +31,11 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
+  static const double _logoutButtonHeight =
+      AppSize.buttonHeight - AppSpacing.xxs;
+
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final SettingsState settings = context.watch<SettingsCubit>().state;
     final AuthState auth = context.watch<AuthCubit>().state;
 
@@ -50,7 +55,7 @@ class _UserPageState extends State<UserPage> {
             AppSpacing.lg,
             AppSpacing.lg,
             AppSpacing.lg,
-            110,
+            AppSpacing.bottomNavClearance,
           ),
           children: <Widget>[
             Text(
@@ -61,38 +66,10 @@ class _UserPageState extends State<UserPage> {
             ),
             if (auth.status == AuthStatus.guest) ...<Widget>[
               const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm + AppSpacing.xxs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(
-                    color: AppTheme.primary.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: <Widget>[
-                    const Icon(Icons.account_circle_outlined,
-                        size: 18, color: AppTheme.primary),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        context.l10n.guestModeBanner,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _GuestBanner(),
             ],
-            const SizedBox(height: _UserMetrics.headerSpacing),
-            _ProfileCard(
+            const SizedBox(height: AppSpacing.md + AppSpacing.xxs),
+            UserProfileCard(
               displayName: profileDisplayName,
               account: currentUsername.isEmpty
                   ? context.l10n.userDefaultDisplayName
@@ -108,51 +85,47 @@ class _UserPageState extends State<UserPage> {
               subtitle: context.l10n.monthlySummarySubtitle,
             ),
             const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
-            _MonthSummaryCard(summary: summary),
+            UserMonthSummaryCard(
+              monthLabel: summary.monthLabel,
+              totalThisMonth: summary.totalThisMonth,
+              dailyAverage: summary.dailyAverage,
+            ),
             const SizedBox(height: AppSpacing.md + AppSpacing.xxs),
             AppSectionHeader(
               title: context.l10n.categoryManagementTitle,
               subtitle: context.l10n.categoryManagementSubtitle,
             ),
             const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
-            _CategoryManagementCard(
-              onTap: _openCategoryManagementPage,
-            ),
+            UserCategoryCard(onTap: _openCategoryManagementPage),
             const SizedBox(height: AppSpacing.md + AppSpacing.xxs),
             AppSectionHeader(
               title: context.l10n.settingsTitle,
               subtitle: context.l10n.settingsSubtitle,
             ),
             const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
-            _SettingsCard(
+            UserSettingsCard(
               settings: settings,
               onLanguageChanged: (AppLanguage language) async {
-                final String toastMessage = context.l10n.languageUpdated;
+                final String msg = context.l10n.languageUpdated;
                 await context.read<SettingsCubit>().setLanguage(language);
-                if (!mounted) {
-                  return;
-                }
-                AppToast.info(toastMessage);
+                if (!mounted) return;
+                AppToast.info(msg);
               },
               onCurrencyChanged: (AppCurrency currency) async {
-                final String toastMessage = context.l10n.currencyUnitUpdated;
+                final String msg = context.l10n.currencyUnitUpdated;
                 await context.read<SettingsCubit>().setCurrency(currency);
-                if (!mounted) {
-                  return;
-                }
-                AppToast.info(toastMessage);
+                if (!mounted) return;
+                AppToast.info(msg);
               },
               onDarkModeChanged: (bool isDark) async {
-                final String toastMessage = isDark
+                final String msg = isDark
                     ? context.l10n.darkModeEnabled
                     : context.l10n.lightModeEnabled;
                 await context
                     .read<SettingsCubit>()
                     .setThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
-                if (!mounted) {
-                  return;
-                }
-                AppToast.info(toastMessage);
+                if (!mounted) return;
+                AppToast.info(msg);
               },
             ),
             const SizedBox(height: AppSpacing.md),
@@ -162,7 +135,7 @@ class _UserPageState extends State<UserPage> {
                 icon: const Icon(Icons.sync_rounded),
                 style: FilledButton.styleFrom(
                   minimumSize:
-                      const Size.fromHeight(_UserMetrics.logoutButtonHeight),
+                      const Size.fromHeight(_logoutButtonHeight),
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
                 ),
@@ -174,7 +147,7 @@ class _UserPageState extends State<UserPage> {
                 icon: const Icon(Icons.logout_rounded),
                 style: FilledButton.styleFrom(
                   minimumSize:
-                      const Size.fromHeight(_UserMetrics.logoutButtonHeight),
+                      const Size.fromHeight(_logoutButtonHeight),
                 ),
                 label: Text(context.l10n.logoutButton),
               ),
@@ -186,7 +159,9 @@ class _UserPageState extends State<UserPage> {
                   child: Text(
                     context.l10n.syncingData,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant,
                         ),
                   ),
                 ),
@@ -202,14 +177,12 @@ class _UserPageState extends State<UserPage> {
     SettingsState settings,
   ) {
     final DateTime now = DateTime.now();
-    final String monthLabel = state.insights?.monthly.month ??
-        DateFormat('MMMM yyyy', settings.localeCode).format(now);
-
+    final String monthLabel = DateFormat(AppDateFormat.monthYear, settings.localeCode)
+        .format(state.insights?.monthly.monthDate ?? now);
     final double totalThisMonth =
         state.insights?.monthly.totalThisMonth ?? _fallbackMonthExpense(state);
-    final double dailyAverage = state.insights?.dailyAverage.dailyAverage ??
-        _fallbackDailyAverage(state);
-
+    final double dailyAverage =
+        state.insights?.dailyAverage.dailyAverage ?? _fallbackDailyAverage(state);
     return _MonthSummary(
       monthLabel: monthLabel,
       totalThisMonth: totalThisMonth,
@@ -221,124 +194,41 @@ class _UserPageState extends State<UserPage> {
     final DateTime now = DateTime.now();
     double total = 0;
     for (final Expense expense in state.allExpenses) {
-      final bool inCurrentMonth =
-          expense.date.year == now.year && expense.date.month == now.month;
-      if (inCurrentMonth && expense.amount > 0) {
-        total += expense.displayAmount;
+      if (expense.date.year == now.year &&
+          expense.date.month == now.month &&
+          expense.amount > 0) {
+        total += expense.amount;
       }
     }
     return total;
   }
 
-  double _fallbackDailyAverage(DashboardState state) {
-    final DateTime now = DateTime.now();
-    final double total = _fallbackMonthExpense(state);
-    final int elapsedDays = now.day.clamp(1, 31);
-    return total / elapsedDays;
-  }
+  double _fallbackDailyAverage(DashboardState state) =>
+      _fallbackMonthExpense(state) / DateTime.now().day.clamp(1, 31);
 
   Future<void> _showEditProfileSheet({
     required String currentUsername,
     required String currentDisplayName,
   }) async {
-    final String profileUpdatedMessage = context.l10n.profileUpdated;
-    final AuthCubit sessionCubit = context.read<AuthCubit>();
-    final String initialDisplayName =
-        currentDisplayName.isEmpty ? currentUsername : currentDisplayName;
-    final TextEditingController nameController =
-        TextEditingController(text: initialDisplayName);
+    final AuthCubit authCubit = context.read<AuthCubit>();
+    final String profileUpdatedMsg = context.l10n.profileUpdated;
+    final String requestFailedMsg = context.l10n.requestFailed;
 
-    final bool? saved = await showModalBottomSheet<bool>(
+    // Sheet pops with the new display name string, or null if cancelled.
+    final String? newName = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      builder: (BuildContext context) {
-        final ColorScheme colorScheme = Theme.of(context).colorScheme;
-        final double bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.48,
-          minChildSize: 0.38,
-          maxChildSize: 0.76,
-          builder: (
-            BuildContext context,
-            ScrollController scrollController,
-          ) {
-            return ListView(
-              controller: scrollController,
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                bottomInset + AppSpacing.lg,
-              ),
-              children: <Widget>[
-                Center(
-                  child: Container(
-                    width: 42,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  context.l10n.editProfileTitle,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                TextField(
-                  controller: nameController,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.displayNameLabel,
-                    hintText: context.l10n.userDefaultDisplayName,
-                    prefixIcon: const Icon(Icons.person_outline_rounded),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                TextFormField(
-                  initialValue: currentUsername,
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.registerUsernameLabel,
-                    prefixIcon: const Icon(Icons.person_outline_rounded),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxl),
-                FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                  child: Text(context.l10n.saveProfileButton),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (_) => _EditProfileSheet(
+        currentUsername: currentUsername,
+        currentDisplayName: currentDisplayName,
+      ),
     );
 
-    if (saved == true) {
-      final String updatedDisplayName = nameController.text.trim().isEmpty
-          ? initialDisplayName
-          : nameController.text.trim();
-      final bool success =
-          await sessionCubit.setDisplayName(updatedDisplayName);
-      if (!mounted) {
-        return;
-      }
-      if (success) {
-        AppToast.info(profileUpdatedMessage);
-      } else {
-        AppToast.error(context.l10n.requestFailed);
-      }
-    }
+    if (newName == null || !mounted) return;
+
+    final bool success = await authCubit.setDisplayName(newName);
+    if (!mounted) return;
+    AppToast.info(success ? profileUpdatedMsg : requestFailedMsg);
   }
 
   Future<void> _openCategoryManagementPage() async {
@@ -350,11 +240,7 @@ class _UserPageState extends State<UserPage> {
         ),
       ),
     );
-
-    if (!mounted) {
-      return;
-    }
-
+    if (!mounted) return;
     context.read<DashboardCubit>().loadDashboard(showLoading: false);
     context.read<ExpenseListCubit>().loadExpenses(showLoading: false);
   }
@@ -370,301 +256,168 @@ class _UserPageState extends State<UserPage> {
   Future<void> _handleLogout() async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(context.l10n.logoutConfirmTitle),
-          content: Text(context.l10n.logoutConfirmMessage),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(context.l10n.commonCancel),
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(context.l10n.logoutConfirmTitle),
+        content: Text(context.l10n.logoutConfirmMessage),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.l10n.logoutButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await context.read<AuthCubit>().logout();
+    if (!mounted) return;
+    AppToast.info(context.l10n.logoutSuccess);
+  }
+}
+
+// ── Edit Profile Bottom Sheet ─────────────────────────────────────────────────
+
+/// Bottom sheet that pops with the updated display name string on save,
+/// or null if the user cancels.
+class _EditProfileSheet extends StatefulWidget {
+  const _EditProfileSheet({
+    required this.currentUsername,
+    required this.currentDisplayName,
+  });
+
+  final String currentUsername;
+  final String currentDisplayName;
+
+  @override
+  State<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<_EditProfileSheet> {
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    final String initial = widget.currentDisplayName.isEmpty
+        ? widget.currentUsername
+        : widget.currentDisplayName;
+    _nameController = TextEditingController(text: initial);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.48,
+      minChildSize: 0.38,
+      maxChildSize: 0.76,
+      builder: (BuildContext context, ScrollController scrollController) {
+        return ListView(
+          controller: scrollController,
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            bottomInset + AppSpacing.lg,
+          ),
+          children: <Widget>[
+            const AppBottomSheetHandle(),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              context.l10n.editProfileTitle,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            TextField(
+              controller: _nameController,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                labelText: context.l10n.displayNameLabel,
+                hintText: context.l10n.userDefaultDisplayName,
+                prefixIcon: const Icon(Icons.person_outline_rounded),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              initialValue: widget.currentUsername,
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText: context.l10n.registerUsernameLabel,
+                prefixIcon: const Icon(Icons.person_outline_rounded),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(context.l10n.logoutButton),
+              onPressed: () {
+                final String text = _nameController.text.trim();
+                final String result = text.isEmpty
+                    ? (widget.currentDisplayName.isEmpty
+                        ? widget.currentUsername
+                        : widget.currentDisplayName)
+                    : text;
+                Navigator.of(context).pop(result);
+              },
+              child: Text(context.l10n.saveProfileButton),
             ),
           ],
         );
       },
     );
-
-    if (confirmed != true || !mounted) {
-      return;
-    }
-
-    await context.read<AuthCubit>().logout();
-    if (!mounted) {
-      return;
-    }
-    AppToast.info(context.l10n.logoutSuccess);
   }
 }
 
-class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({
-    required this.displayName,
-    required this.account,
-    required this.onEdit,
-  });
+// ── Guest Banner ──────────────────────────────────────────────────────────────
 
-  final String displayName;
-  final String account;
-  final VoidCallback onEdit;
-
+class _GuestBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-    return AppSurfaceCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      radius: AppRadius.xxl,
-      outlined: false,
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm + AppSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+      ),
       child: Row(
         children: <Widget>[
-          CircleAvatar(
-            radius: _UserMetrics.avatarRadius,
-            backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
-            child: Icon(
-              Icons.person_rounded,
-              color: colorScheme.primary,
-            ),
+          const Icon(
+            Icons.account_circle_outlined,
+            size: AppIconSize.sm,
+            color: AppTheme.primary,
           ),
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  displayName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  account,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ],
+            child: Text(
+              context.l10n.guestModeBanner,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
           ),
-          IconButton(
-            tooltip: context.l10n.editProfileTooltip,
-            onPressed: onEdit,
-            icon: const Icon(Icons.edit_rounded),
-          ),
         ],
       ),
     );
   }
 }
 
-class _SettingsCard extends StatelessWidget {
-  const _SettingsCard({
-    required this.settings,
-    required this.onLanguageChanged,
-    required this.onCurrencyChanged,
-    required this.onDarkModeChanged,
-  });
-
-  final SettingsState settings;
-  final ValueChanged<AppLanguage> onLanguageChanged;
-  final ValueChanged<AppCurrency> onCurrencyChanged;
-  final ValueChanged<bool> onDarkModeChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppSurfaceCard(
-      padding: const EdgeInsets.all(AppSpacing.lg - AppSpacing.xxs),
-      radius: AppRadius.xl,
-      outlined: false,
-      child: Column(
-        children: <Widget>[
-          DropdownButtonFormField<AppLanguage>(
-            value: settings.language,
-            decoration: InputDecoration(
-              labelText: context.l10n.languageLabel,
-              prefixIcon: const Icon(Icons.language_rounded),
-            ),
-            items: <DropdownMenuItem<AppLanguage>>[
-              DropdownMenuItem<AppLanguage>(
-                value: AppLanguage.englishUs,
-                child: Text(context.l10n.languageEnglishUsd),
-              ),
-              DropdownMenuItem<AppLanguage>(
-                value: AppLanguage.vietnameseVn,
-                child: Text(context.l10n.languageVietnameseVnd),
-              ),
-            ],
-            onChanged: (AppLanguage? value) {
-              if (value != null) {
-                onLanguageChanged(value);
-              }
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
-          DropdownButtonFormField<AppCurrency>(
-            value: settings.currency,
-            decoration: InputDecoration(
-              labelText: context.l10n.currencyUnitLabel,
-              prefixIcon: const Icon(Icons.attach_money_rounded),
-            ),
-            items: <DropdownMenuItem<AppCurrency>>[
-              DropdownMenuItem<AppCurrency>(
-                value: AppCurrency.usd,
-                child: Text(context.l10n.currencyUnitUsd),
-              ),
-              DropdownMenuItem<AppCurrency>(
-                value: AppCurrency.vnd,
-                child: Text(context.l10n.currencyUnitVnd),
-              ),
-            ],
-            onChanged: (AppCurrency? value) {
-              if (value != null) {
-                onCurrencyChanged(value);
-              }
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            value: settings.themeMode == ThemeMode.dark,
-            onChanged: onDarkModeChanged,
-            title: Text(context.l10n.darkModeTitle),
-            subtitle: Text(context.l10n.darkModeSubtitle),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryManagementCard extends StatelessWidget {
-  const _CategoryManagementCard({
-    required this.onTap,
-  });
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-    return AppSurfaceCard(
-      padding: EdgeInsets.zero,
-      radius: AppRadius.xl,
-      outlined: false,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
-          child: Icon(
-            Icons.category_rounded,
-            color: colorScheme.primary,
-          ),
-        ),
-        title: Text(
-          context.l10n.manageCategoriesButton,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        subtitle: Text(context.l10n.manageCategoriesDescription),
-        trailing: const Icon(Icons.chevron_right_rounded),
-      ),
-    );
-  }
-}
-
-class _MonthSummaryCard extends StatelessWidget {
-  const _MonthSummaryCard({required this.summary});
-
-  final _MonthSummary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppSurfaceCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      radius: AppRadius.xxl,
-      outlined: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            summary.monthLabel,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: _SummaryItem(
-                  label: context.l10n.summaryTotalThisMonth,
-                  value: CurrencyFormatter.formatValue(summary.totalThisMonth),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: _SummaryItem(
-                  label: context.l10n.summaryAvgDaily,
-                  value: CurrencyFormatter.formatValue(summary.dailyAverage),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryItem extends StatelessWidget {
-  const _SummaryItem({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-    return AppSurfaceCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      radius: AppRadius.md,
-      outlined: false,
-      color: colorScheme.primary.withValues(alpha: 0.1),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// ── Data model ────────────────────────────────────────────────────────────────
 
 class _MonthSummary {
   const _MonthSummary({
@@ -676,13 +429,4 @@ class _MonthSummary {
   final String monthLabel;
   final double totalThisMonth;
   final double dailyAverage;
-}
-
-class _UserMetrics {
-  const _UserMetrics._();
-
-  static const double headerSpacing = 14;
-  static const double logoutButtonHeight =
-      AppSize.buttonHeight - AppSpacing.xxs;
-  static const double avatarRadius = 26;
 }

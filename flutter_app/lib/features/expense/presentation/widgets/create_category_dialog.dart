@@ -96,14 +96,14 @@ class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
                   onFieldSubmitted: (_) => _submit(),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: _DialogSpacing.beforeLabel),
               Text(
                 context.l10n.createCategoryIconLabel,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: _DialogSpacing.afterLabel),
               Wrap(
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
@@ -118,8 +118,8 @@ class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
                         },
                         child: AnimatedContainer(
                           duration: AppDurationMs.fast,
-                          width: 42,
-                          height: 42,
+                          width: AppContainerSize.iconMd,
+                          height: AppContainerSize.iconMd,
                           decoration: BoxDecoration(
                             color: _selectedIconKey == option.key
                                 ? colorScheme.primary.withValues(alpha: 0.14)
@@ -135,7 +135,7 @@ class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
                           ),
                           child: Icon(
                             option.iconData,
-                            size: 20,
+                            size: AppIconSize.md,
                             color: _selectedIconKey == option.key
                                 ? colorScheme.primary
                                 : colorScheme.onSurfaceVariant,
@@ -145,14 +145,14 @@ class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
                     )
                     .toList(growable: false),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: _DialogSpacing.beforeLabel),
               Text(
                 context.l10n.createCategoryColorLabel,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: _DialogSpacing.afterLabel),
               Wrap(
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
@@ -167,8 +167,8 @@ class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
                         },
                         child: AnimatedContainer(
                           duration: AppDurationMs.fast,
-                          width: 42,
-                          height: 42,
+                          width: AppContainerSize.iconMd,
+                          height: AppContainerSize.iconMd,
                           decoration: BoxDecoration(
                             color: parseHexColor(
                               colorHex,
@@ -185,7 +185,7 @@ class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
                           child: _selectedColorHex == colorHex
                               ? Icon(
                                   Icons.check_rounded,
-                                  size: 20,
+                                  size: AppIconSize.md,
                                   color: colorScheme.onPrimary,
                                 )
                               : null,
@@ -210,6 +210,16 @@ class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
       ],
     );
   }
+}
+
+class _DialogSpacing {
+  const _DialogSpacing._();
+
+  /// Space above a section label (between field/picker and next label).
+  static const double beforeLabel = 14;
+
+  /// Space below a section label (between label and its picker grid).
+  static const double afterLabel = 10;
 }
 
 const List<String> kCategoryColorHexOptions = <String>[

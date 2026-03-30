@@ -28,7 +28,11 @@ class ExpenseCard extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final String locale = Localizations.localeOf(context).toString();
     final bool isIncome = expense.amount < 0;
-    final double absoluteAmount = expense.displayAmount.abs();
+    final bool sameDisplayCurrency =
+        expense.currencyCode.toUpperCase() == CurrencyFormatter.currencyCode;
+    final double absoluteAmount = sameDisplayCurrency
+        ? expense.displayAmount.abs()
+        : expense.amount.abs();
     final Color categoryColor =
         parseHexColor(category?.color, fallback: AppTheme.primary);
     final String subtitle = [
@@ -47,8 +51,8 @@ class ExpenseCard extends StatelessWidget {
           child: Row(
             children: <Widget>[
               Container(
-                width: _ExpenseCardMetrics.iconContainerSize,
-                height: _ExpenseCardMetrics.iconContainerSize,
+                width: AppContainerSize.iconLg,
+                height: AppContainerSize.iconLg,
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -86,7 +90,7 @@ class ExpenseCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   Text(
-                    '${isIncome ? '+' : '-'}${CurrencyFormatter.formatValue(absoluteAmount)}',
+                    '${isIncome ? '+' : '-'}${sameDisplayCurrency ? CurrencyFormatter.formatValue(absoluteAmount) : CurrencyFormatter.format(absoluteAmount)}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: isIncome
                               ? AppTheme.positiveGreen
@@ -109,10 +113,4 @@ class ExpenseCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ExpenseCardMetrics {
-  const _ExpenseCardMetrics._();
-
-  static const double iconContainerSize = 44;
 }

@@ -45,7 +45,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
     final Map<String, double> grouped = <String, double>{};
     for (final Expense expense in monthExpenses) {
       grouped[expense.categoryId] =
-          (grouped[expense.categoryId] ?? 0) + expense.displayAmount;
+          (grouped[expense.categoryId] ?? 0) + expense.amount;
     }
 
     final List<_SliceData> slices =
@@ -142,7 +142,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                     ),
                   ),
                   Text(
-                    CurrencyFormatter.formatValue(slice.amount),
+                    CurrencyFormatter.format(slice.amount),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
