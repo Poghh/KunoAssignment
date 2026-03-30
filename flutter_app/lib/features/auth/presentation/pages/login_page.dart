@@ -210,7 +210,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: AppSpacing.sm),
                 OutlinedButton.icon(
                   onPressed: _continueOffline,
-                  icon: const Icon(Icons.wifi_off_rounded, size: 18),
+                  icon: const Icon(Icons.person_outline_rounded, size: 18),
                   label: Text(context.l10n.continueOfflineButton),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, AppSize.buttonHeight),

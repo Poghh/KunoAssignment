@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/app_ui_constants.dart';
 import '../../../../core/cubit/auth_cubit.dart';
 import '../../../../core/cubit/settings_cubit.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -26,24 +27,26 @@ class _SplashPageState extends State<SplashPage>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: _SplashMetrics.animationDuration,
     );
 
     _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _scaleAnim = Tween<double>(begin: 0.82, end: 1.0).animate(
+    _scaleAnim = Tween<double>(
+      begin: _SplashMetrics.scaleBegin,
+      end: 1.0,
+    ).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
 
     _controller.forward();
-
-    Future<void>.delayed(const Duration(milliseconds: 2000), _navigate);
+    Future<void>.delayed(_SplashMetrics.holdDuration, _navigate);
   }
 
   void _navigate() {
     if (!mounted) return;
 
-    final settings = context.read<SettingsCubit>().state;
-    final auth = context.read<AuthCubit>().state;
+    final SettingsState settings = context.read<SettingsCubit>().state;
+    final AuthState auth = context.read<AuthCubit>().state;
 
     Widget destination;
     if (!settings.hasCompletedSetup) {
@@ -51,7 +54,7 @@ class _SplashPageState extends State<SplashPage>
     } else if (auth.status == AuthStatus.guest) {
       destination = const ExpenseShellPage();
     } else if (auth.status == AuthStatus.authenticated) {
-      final hasDisplayName = auth.displayName?.trim().isNotEmpty ?? false;
+      final bool hasDisplayName = auth.displayName?.trim().isNotEmpty ?? false;
       destination =
           hasDisplayName ? const ExpenseShellPage() : const DisplayNameSetupPage();
     } else {
@@ -65,7 +68,7 @@ class _SplashPageState extends State<SplashPage>
           opacity: animation,
           child: child,
         ),
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: _SplashMetrics.fadeDuration,
       ),
     );
   }
@@ -85,9 +88,9 @@ class _SplashPageState extends State<SplashPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: <Color>[
-              Color(0xFF16A34A),
+              AppTheme.splashGradientStart,
               AppTheme.primary,
-              Color(0xFF4ADE80),
+              AppTheme.splashGradientEnd,
             ],
           ),
         ),
@@ -100,41 +103,43 @@ class _SplashPageState extends State<SplashPage>
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: AppContainerSize.splashLogo,
+                    height: AppContainerSize.splashLogo,
+                    padding: const EdgeInsets.all(_SplashMetrics.logoPadding),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(AppRadius.logo),
                       boxShadow: <BoxShadow>[
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.18),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
+                          color: Colors.black
+                              .withValues(alpha: _SplashMetrics.shadowAlpha),
+                          blurRadius: _SplashMetrics.shadowBlur,
+                          offset: const Offset(0, _SplashMetrics.shadowOffsetY),
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(14),
                     child: Image.asset(
                       'assets/images/app-logo.png',
                       fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
                   const Text(
                     'Kuno Spendy',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: _SplashMetrics.titleFontSize,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
+                      letterSpacing: _SplashMetrics.titleLetterSpacing,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Track smarter, spend wiser',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 15,
+                      color: Colors.white
+                          .withValues(alpha: _SplashMetrics.taglineAlpha),
+                      fontSize: _SplashMetrics.taglineFontSize,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -146,4 +151,22 @@ class _SplashPageState extends State<SplashPage>
       ),
     );
   }
+}
+
+class _SplashMetrics {
+  const _SplashMetrics._();
+
+  static const Duration animationDuration = Duration(milliseconds: 900);
+  static const Duration holdDuration = Duration(milliseconds: 2000);
+  static const Duration fadeDuration = Duration(milliseconds: 400);
+
+  static const double scaleBegin = 0.82;
+  static const double logoPadding = 14;
+  static const double shadowAlpha = 0.18;
+  static const double shadowBlur = 24;
+  static const double shadowOffsetY = 8;
+  static const double taglineAlpha = 0.8;
+  static const double titleFontSize = 32;
+  static const double taglineFontSize = 15;
+  static const double titleLetterSpacing = 0.5;
 }
